@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { mockAdminUser, recentUsers } from "@/lib/mock-data"
+import { mockAdminUser, recentUsers } from "@/pages/api/mock-data"
 
 export default function AdminDashboard() {
   const router = useRouter()

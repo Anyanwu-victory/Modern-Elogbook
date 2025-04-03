@@ -34,7 +34,7 @@ const mockUser = {
 
 interface DashboardLayoutProps {
   children: React.ReactNode
-  userRole: "student" | "supervisor" | "admin"
+  userRole: "student" | "industrySupervisor" | "instituteSupervisor" | "itfPersonnel" | "admin"
 }
 
 export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
@@ -62,7 +62,21 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
     { name: "Profile", href: "/dashboard/profile", icon: Users },
   ]
 
-  const supervisorNavItems = [
+  const industrySupervisorNavItems = [
+    { name: "Dashboard", href: "/supervisor", icon: Home },
+    { name: "Students", href: "/supervisor/students", icon: Users },
+    { name: "Review Logs", href: "/supervisor/review-logs", icon: ClipboardList },
+    { name: "Calendar", href: "/supervisor/calendar", icon: Calendar },
+  ]
+
+  const instituteSupervisorNavItems = [
+    { name: "Dashboard", href: "/supervisor", icon: Home },
+    { name: "Students", href: "/supervisor/students", icon: Users },
+    { name: "Review Logs", href: "/supervisor/review-logs", icon: ClipboardList },
+    { name: "Calendar", href: "/supervisor/calendar", icon: Calendar },
+  ]
+
+  const itfPersonnelNavItems = [
     { name: "Dashboard", href: "/supervisor", icon: Home },
     { name: "Students", href: "/supervisor/students", icon: Users },
     { name: "Review Logs", href: "/supervisor/review-logs", icon: ClipboardList },
@@ -78,7 +92,7 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
   ]
 
   const navItems =
-    userRole === "student" ? studentNavItems : userRole === "supervisor" ? supervisorNavItems : adminNavItems
+    userRole === "student" ? studentNavItems : userRole === "industrySupervisor" ? industrySupervisorNavItems : userRole === "instituteSupervisor" ? instituteSupervisorNavItems : userRole === "itfPersonnel" ? itfPersonnelNavItems : adminNavItems
 
   const handleLogout = () => {
     // Implement logout logic here
@@ -125,7 +139,7 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
               </SheetContent>
             </Sheet>
             <Link
-              href={userRole === "student" ? "/dashboard" : userRole === "supervisor" ? "/supervisor" : "/admin"}
+              href={userRole === "student" ? "/dashboard" : "/admin" }
               className="flex items-center gap-2 font-semibold"
             >
               <svg

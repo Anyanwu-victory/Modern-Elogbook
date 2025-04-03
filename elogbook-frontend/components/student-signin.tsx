@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+
 export default function SignIn() {
   const [role, setRole] = useState("student");
   const [email, setEmail] = useState("");
@@ -13,7 +14,7 @@ export default function SignIn() {
 
   const handleSignIn = async () => {
     try {
-      const response = await fetch("/mock-data.json"); // Corrected path
+      const response = await fetch("/api/mock"); // Corrected path
         const data = await response.json(); // Parse response
 
       if (response.ok)  {

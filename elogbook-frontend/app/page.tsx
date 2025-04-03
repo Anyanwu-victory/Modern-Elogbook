@@ -30,11 +30,11 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <ModeToggle />
             <Button variant="outline" size="sm"
-             onClick={() => router.push("/dashboard")}>
+             onClick={() => router.push("/sign-in")}>
               Sign In
             </Button>
             <Button size="sm"
-             onClick={() => router.push("/onboarding")}>
+             onClick={() => router.push("/sign-up")}>
               Sign Up
             </Button>
           </div>
@@ -55,7 +55,7 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" className="w-full min-[400px]:w-auto" onClick={() => router.push("/dashboard")}>
+                  <Button size="lg" className="w-full min-[400px]:w-auto" onClick={() => router.push("/sign-up")}>
                     Get Started
                   </Button>
                   <Link href="#features">
