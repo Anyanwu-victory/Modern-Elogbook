@@ -48,7 +48,7 @@ export default function InstituteSupervisorDashboard() {
 
   return (
     <DashboardLayout userRole="instituteSupervisor">
-      <div className="space-y-6">
+      <div className="space-y-6 px-5 lg:px-10">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Supervisor Dashboard</h1>
           <p className="text-muted-foreground">Welcome back, {user?.firstName || "Supervisor"}!</p>

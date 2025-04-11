@@ -56,7 +56,12 @@ export default function MyLogsPage() {
   );
 }
 
-function Header({ router }) {
+interface HeaderProps {
+  router: ReturnType<typeof useRouter>;
+}
+
+
+function Header({ router }: HeaderProps) {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
@@ -70,7 +75,15 @@ function Header({ router }) {
   );
 }
 
-function Filters({ searchTerm, setSearchTerm, statusFilter, setStatusFilter }) {
+interface FiltersProps {
+  searchTerm: string;
+  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
+  statusFilter: string;
+  setStatusFilter: React.Dispatch<React.SetStateAction<string>>;
+}
+
+
+function Filters({ searchTerm, setSearchTerm, statusFilter, setStatusFilter }: FiltersProps) {
   return (
     <div className="flex flex-col md:flex-row gap-4">
       <InputWithIcon icon={Search} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search logs..." />
@@ -90,7 +103,37 @@ function Filters({ searchTerm, setSearchTerm, statusFilter, setStatusFilter }) {
   );
 }
 
-function LogsTable({ logs, onViewLog, openDialog }) {
+interface InputWithIconProps {
+  icon: React.ElementType;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+}
+
+const InputWithIcon = ({ icon: Icon, value, onChange, placeholder }: InputWithIconProps) => (
+  <div className="relative w-full">
+    <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <Input value={value} onChange={onChange} placeholder={placeholder} className="pl-10" />
+  </div>
+);
+
+interface Log {
+  id: string;
+  day: string;
+  date: string;
+  activity: string;
+  status: 'approved' | 'pending' | 'rejected';
+}
+
+interface LogsTableProps {
+  logs: Log[];
+  onViewLog: (log: Log) => void;
+  openDialog: (open: boolean) => void;
+}
+
+
+function LogsTable({ logs, onViewLog, openDialog }: LogsTableProps) {
+    //const handleViewLog = (log: Log) => {
   return (
     <div className="rounded-md border">
       <Table>
@@ -127,9 +170,17 @@ function LogsTable({ logs, onViewLog, openDialog }) {
       </Table>
     </div>
   );
+
 }
 
-function Pagination({ currentPage, totalPages, onPageChange }) {
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
+
+function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
   return (
     <div className="flex justify-center space-x-2">
       <Button variant="outline" size="icon" disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)}>
@@ -142,8 +193,14 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
     </div>
   );
 }
+interface LogDetailsDialogProps {
+  log: Log | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
 
-function LogDetailsDialog({ log, isOpen, onClose }) {
+
+function LogDetailsDialog({ log, isOpen, onClose }: LogDetailsDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>

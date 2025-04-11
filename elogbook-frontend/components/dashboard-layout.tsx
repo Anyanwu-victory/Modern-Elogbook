@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import userProfile from "./user-profile"
 import {
   BarChart3,
   BookOpen,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { useUser } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "./mood-toggle"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -91,6 +93,7 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]
 
+  
   const navItems =
     userRole === "student" ? studentNavItems : userRole === "industrySupervisor" ? industrySupervisorNavItems : userRole === "instituteSupervisor" ? instituteSupervisorNavItems : userRole === "itfPersonnel" ? itfPersonnelNavItems : adminNavItems
 
@@ -99,9 +102,25 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
     router.push("/")
   }
 
+  const getProfileRoute = () => {
+    switch(userRole) {
+      case "student":
+        return "/dashboard/profile"
+      case "industrySupervisor":
+      case "instituteSupervisor":
+      case "itfPersonnel":
+        return "/user-profile"
+      case "admin":
+        return "/admin/profile"
+      default:
+        return "/profile"
+    }
+  }
+  
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="flex min-h-screen flex-col  ">
+      <header className="sticky top-0 z-50 w-full px-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-10">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-2">
             <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
@@ -127,6 +146,7 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
                       {item.name}
                     </Link>
                   ))}
+                  
                   <Button
                     variant="ghost"
                     className="flex items-center gap-2 px-2 py-1 text-sm font-medium justify-start"
@@ -175,14 +195,21 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
             <ModeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1">
+                <Button variant="ghost" size="sm" className="gap-1" >
                   <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                    {/* user profile name */}
                     {user.firstName.charAt(0)}
                   </div>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => router.push(getProfileRoute())}>
+                  <Users className="mr-2 h-4 w-4" />
+                                   
+                  <span>Profile</span>
+                </DropdownMenuItem>
+
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Logout</span>

@@ -1,19 +1,6 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import {NextResponse} from 'next/server';
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
-const isProtectedRoute = createRouteMatcher(['/student', '/industrySupervisor', '/instituteSupervisor', '/itfPersonnel', '/admin']);
-const isAdminRoute = createRouteMatcher(['/admin']);
-const isIndustrySupervisor = createRouteMatcher(['/industrySupervisor']);
-const isInstituteSupervisor = createRouteMatcher(['/instituteSupervisor']);
-const isITFPersonnel = createRouteMatcher(['/itfPersonnel']);
-const isStudent = createRouteMatcher(['/student']);
-
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    await auth.protect();
-
-  }
-});
+export default clerkMiddleware();
 
 export const config = {
   matcher: [

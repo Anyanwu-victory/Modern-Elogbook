@@ -18,16 +18,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <ClerkProvider dynamic>
+    <html lang="en">
       <body className={inter.className}>
-        <ClerkProvider>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
           <Toaster />
         </ThemeProvider>
-        </ClerkProvider>
       </body>
     </html>
-  )
+    </ClerkProvider>
+  );
 }
 

@@ -99,8 +99,8 @@ export default function SignUp() {
       // Redirect to verification page
       router.push("/auth/verify-email");
     } catch (err: any) {
-      console.error("Error:", err.errors[0].message);
-      setError(err.errors[0].message);
+      console.log("Error:", err);
+      setError(err);
     } finally {
       setIsLoading(false);
     }

@@ -51,6 +51,13 @@ const profileFormSchema = z.object({
   daysPerWeek: z.string({
     required_error: "Please select the number of days per week.",
   }),
+  faculty: z.string({
+    required_error: "Please write out your faculty.",
+  }),
+  department: z.string({
+    required_error: "Please write out your department.",
+  }),
+  
 })
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>
@@ -72,6 +79,8 @@ export default function ProfilePage() {
     graduationYear: "",
     organization: "",
     daysPerWeek: "",
+    faculty: "",
+    department: "",
   }
 
   const form = useForm<ProfileFormValues>({
@@ -93,7 +102,7 @@ export default function ProfilePage() {
       router.push("/dashboard")
     }, 1500)
   }
-
+   
   // Generate graduation year options (current year to current year + 5)
   const currentYear = new Date().getFullYear()
   const graduationYears = Array.from({ length: 6 }, (_, i) => (currentYear + i).toString())
@@ -171,6 +180,32 @@ export default function ProfilePage() {
                     <FormLabel>Course</FormLabel>
                     <FormControl>
                       <Input placeholder="Computer Science" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="faculty"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Faculty</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Faculty of " {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="department"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Department of" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
