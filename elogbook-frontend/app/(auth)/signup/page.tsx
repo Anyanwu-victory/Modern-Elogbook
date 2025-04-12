@@ -82,9 +82,10 @@ export default function SignUpPage() {
       // Prepare email verification
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
 
+//Redirect user to verify email page
       router.push("/verify-email");
-      // Redirect to account setup with role as query param
-      router.push(`/setup-account`);
+       
+    
       
     } catch (err: any) {
         console.error("Error during signup:", err);

@@ -19,9 +19,15 @@ import { Form } from "@/components/ui/form"
 import { useToast } from "@/components/ui/use-toast"
 import { StepOne } from "@/components/setup-steps/step-one"
 import { StepTwoStudent } from "@/components/setup-steps/step-two-student"
-import { StepTwoStaff } from "@/components/setup-steps/step-two-staff"
+import { StepTwoIndustrySupervisor } from "@/components/setup-steps/step-two-industry-supervisor"
+import { StepTwoInstitutionSupervisor } from "@/components/setup-steps/step-two-institute-supervisor"
+import { StepTwoITF } from "@/components/setup-steps/step-two-itf"
+import { StepTwoAdmin } from "@/components/setup-steps/step-two-admin"
 import { StepThreeStudent } from "@/components/setup-steps/step-three-student"
-import { StepThreeStaff } from "@/components/setup-steps/step-three-staff"
+import { StepThreeIndustrySupervisor } from "@/components/setup-steps/step-three-industry-supervisor"
+import { StepThreeInstitutionSupervisor } from "@/components/setup-steps/step-three-institute-supervisor"
+import { StepThreeITF } from "@/components/setup-steps/step-three-itf"
+import { StepThreeAdmin } from "@/components/setup-steps/step-three-admin"
 import { StepIndicator } from "@/components/setup-steps/step-indicator"
 
 // Define the form schema for each step
@@ -37,10 +43,24 @@ const stepTwoStudentSchema = z.object({
   matricNo: z.string().min(5, { message: "Matriculation number must be at least 5 characters." }),
 })
 
-const stepTwoStaffSchema = z.object({
+const stepTwoIndustrySupervisorSchema = z.object({
   staffId: z.string().min(5, { message: "Staff ID must be at least 5 characters." }),
-  department: z.string().min(2, { message: "Department must be at least 2 characters." }),
+})
+
+const stepTwoInstitutionSupervisorSchema = z.object({
+  staffId: z.string().min(5, { message: "Staff ID must be at least 5 characters." }),
   position: z.string().min(2, { message: "Position must be at least 2 characters." }),
+  faculty: z.string().min(2, { message: "Faculty must be at least 2 characters." }),
+  department: z.string().min(2, { message: "Department must be at least 2 characters." }),
+})
+
+const stepTwoITFSchema = z.object({
+  staffId: z.string().min(5, { message: "Staff ID must be at least 5 characters." }),
+})
+
+const stepTwoAdminSchema = z.object({
+  staffId: z.string().min(5, { message: "Staff ID must be at least 5 characters." }),
+  faculty: z.string().min(2, { message: "Faculty must be at least 2 characters." }),
 })
 
 const stepThreeStudentSchema = z.object({
@@ -52,32 +72,56 @@ const stepThreeStudentSchema = z.object({
   endDate: z.string({ required_error: "Please select an end date." }),
 })
 
-const stepThreeStaffSchema = z.object({
+const stepThreeIndustrySupervisorSchema = z.object({
+  organizationName: z.string().min(2, { message: "Organization name must be at least 2 characters." }),
+  department: z.string().min(2, { message: "Department must be at least 2 characters." }),
+  section: z.string().min(2, { message: "Section must be at least 2 characters." }),
   phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
+})
+
+const stepThreeInstitutionSupervisorSchema = z.object({
+  signature: z.any().optional(),
+  phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
+})
+
+const stepThreeITFSchema = z.object({
   officeLocation: z.string().min(2, { message: "Office location must be at least 2 characters." }),
-  specialization: z.string().optional(),
+  phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
+})
+
+const stepThreeAdminSchema = z.object({
+  signature: z.any().optional(),
+  phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
 })
 
 // Combine all schemas for the final form data
 const formSchema = z.object({
   role: stepOneSchema.shape.role,
-  // These fields are conditionally required based on the role
+  // Student fields
   faculty: z.string().optional(),
   department: z.string().optional(),
   course: z.string().optional(),
   level: z.string().optional(),
   matricNo: z.string().optional(),
+  // Staff fields
   staffId: z.string().optional(),
   position: z.string().optional(),
+  // Organization fields
   organizationName: z.string().optional(),
   organizationAddress: z.string().optional(),
+  section: z.string().optional(),
+  // Supervisor fields
   supervisorName: z.string().optional(),
   supervisorEmail: z.string().optional(),
+  // Date fields
   startDate: z.string().optional(),
   endDate: z.string().optional(),
+  // Contact fields
   phoneNumber: z.string().optional(),
   officeLocation: z.string().optional(),
   specialization: z.string().optional(),
+  // File fields
+  signature: z.any().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -107,6 +151,7 @@ export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAcc
       position: "",
       organizationName: "",
       organizationAddress: "",
+      section: "",
       supervisorName: "",
       supervisorEmail: "",
       startDate: "",
@@ -114,12 +159,12 @@ export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAcc
       phoneNumber: "",
       officeLocation: "",
       specialization: "",
+      signature: undefined,
     },
     mode: "onChange",
   })
 
   const role = form.watch("role")
-  const isStudent = role === "student"
   const totalSteps = 3
 
   const handleNext = async () => {
@@ -129,13 +174,19 @@ export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAcc
     if (step === 1) {
       isValid = await form.trigger("role")
     } else if (step === 2) {
-      if (isStudent) {
+      if (role === "student") {
         isValid = await form.trigger(["faculty", "department", "course", "level", "matricNo"])
-      } else {
-        isValid = await form.trigger(["staffId", "department", "position"])
+      } else if (role === "industry_supervisor") {
+        isValid = await form.trigger(["staffId"])
+      } else if (role === "institution_supervisor") {
+        isValid = await form.trigger(["staffId", "position", "faculty", "department"])
+      } else if (role === "itf") {
+        isValid = await form.trigger(["staffId"])
+      } else if (role === "admin") {
+        isValid = await form.trigger(["staffId", "faculty"])
       }
     } else if (step === 3) {
-      if (isStudent) {
+      if (role === "student") {
         isValid = await form.trigger([
           "organizationName",
           "organizationAddress",
@@ -144,8 +195,14 @@ export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAcc
           "startDate",
           "endDate",
         ])
-      } else {
-        isValid = await form.trigger(["phoneNumber", "officeLocation", "specialization"])
+      } else if (role === "industry_supervisor") {
+        isValid = await form.trigger(["organizationName", "department", "section", "phoneNumber"])
+      } else if (role === "institution_supervisor") {
+        isValid = await form.trigger(["phoneNumber"])
+      } else if (role === "itf") {
+        isValid = await form.trigger(["officeLocation", "phoneNumber"])
+      } else if (role === "admin") {
+        isValid = await form.trigger(["phoneNumber"])
       }
     }
 
@@ -197,11 +254,17 @@ export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAcc
           <form className="space-y-6">
             {step === 1 && <StepOne form={form} />}
 
-            {step === 2 && isStudent && <StepTwoStudent form={form} />}
-            {step === 2 && !isStudent && <StepTwoStaff form={form} />}
+            {step === 2 && role === "student" && <StepTwoStudent form={form} />}
+            {step === 2 && role === "industry_supervisor" && <StepTwoIndustrySupervisor form={form} />}
+            {step === 2 && role === "institution_supervisor" && <StepTwoInstitutionSupervisor form={form} />}
+            {step === 2 && role === "itf" && <StepTwoITF form={form} />}
+            {step === 2 && role === "admin" && <StepTwoAdmin form={form} />}
 
-            {step === 3 && isStudent && <StepThreeStudent form={form} />}
-            {step === 3 && !isStudent && <StepThreeStaff form={form} />}
+            {step === 3 && role === "student" && <StepThreeStudent form={form} />}
+            {step === 3 && role === "industry_supervisor" && <StepThreeIndustrySupervisor form={form} />}
+            {step === 3 && role === "institution_supervisor" && <StepThreeInstitutionSupervisor form={form} />}
+            {step === 3 && role === "itf" && <StepThreeITF form={form} />}
+            {step === 3 && role === "admin" && <StepThreeAdmin form={form} />}
           </form>
         </Form>
 

@@ -204,7 +204,7 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push(getProfileRoute())}>
+              <DropdownMenuItem onClick={() => router.push("/user-profile")}>
                   <Users className="mr-2 h-4 w-4" />
                                    
                   <span>Profile</span>

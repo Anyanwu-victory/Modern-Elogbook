@@ -1,7 +1,9 @@
 import type { UseFormReturn } from "react-hook-form"
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface StepThreeStudentProps {
   form: UseFormReturn<any>
@@ -97,6 +99,33 @@ export function StepThreeStudent({ form }: StepThreeStudentProps) {
             </FormItem>
           )}
         />
+
+<FormField
+                control={form.control}
+                name="daysPerWeek"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Internship Days per Week</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select days per week" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="3">3 Days</SelectItem>
+                        <SelectItem value="4">4 Days</SelectItem>
+                        <SelectItem value="5">5 Days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      This will determine how many log forms you need to submit each week.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
       </div>
     </div>
   )
