@@ -20,6 +20,7 @@ export default function RootLayout({
   return (
     <ClerkProvider dynamic>
     <html lang="en">
+      
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}

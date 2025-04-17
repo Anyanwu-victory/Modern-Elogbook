@@ -33,7 +33,7 @@ const SchoolLogo = "/assets/full-logo.png";
 
 // Form Schema
 const signupSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  fullName: z.string().min(3, "Full name must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -52,7 +52,7 @@ export default function SignUpPage() {
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      username: "",
+      fullName: "",
       email: "",
       phoneNumber: "",
       password: "",
@@ -72,8 +72,10 @@ export default function SignUpPage() {
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
+        firstName: data.fullName.split(" ")[0], // Extract first name
+        lastName: data.fullName.split(" ")[1] || "", // Extract last name
         unsafeMetadata: {
-          username: data.username,
+          fullName: data.fullName,
           phoneNumber: data.phoneNumber,
           status: "pending", // Awaiting admin approval
         },
@@ -124,12 +126,12 @@ export default function SignUpPage() {
 
           <FormField
             control={form.control}
-            name="username"
+            name="fullName"
             render={({ field }) => (
               <FormItem className="mb-4">
-                <FormLabel>Username</FormLabel>
+                <FormLabel>Full Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="john_doe" {...field} />
+                  <Input placeholder="John S. doe" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -46,13 +46,15 @@ export default function MyLogsPage() {
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <DashboardLayout userRole="student">
+//    <DashboardLayout userRole="student">
+<>
       <Header router={router} />
       <Filters searchTerm={searchTerm} setSearchTerm={setSearchTerm} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
       <LogsTable logs={paginatedLogs} onViewLog={setSelectedLog} openDialog={setIsDialogOpen} />
       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       <LogDetailsDialog log={selectedLog} isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} />
-    </DashboardLayout>
+      </>
+  //  </DashboardLayout>
   );
 }
 

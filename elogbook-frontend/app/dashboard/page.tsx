@@ -3,13 +3,13 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Activity, AlertCircle, Calendar, CheckCircle2, Clock, FileText, Info, Loader2, XCircle } from "lucide-react"
-
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { useUser } from "@clerk/nextjs"
 
 // Mock user data
 const mockUser = {
@@ -20,14 +20,15 @@ const mockUser = {
 
 export default function StudentDashboard() {
   const router = useRouter()
+  const { user,isLoaded, isSignedIn } = useUser()
   const [isProfileComplete, setIsProfileComplete] = useState(false)
   const [loading, setLoading] = useState(true)
 
   // Replace
-  // With
-  const isLoaded = true
-  const isSignedIn = true
-  const user = mockUser
+  // // With
+  // const isLoaded = true
+  // const isSignedIn = true
+  // const user = mockUser
 
   // Mock data - in a real app, this would come from your backend
   const currentWeek = 3
@@ -86,7 +87,7 @@ export default function StudentDashboard() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Student Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, {user?.firstName || "Student"}!</p>
+            <p className="text-muted-foreground">Welcome back, {user?.username || "Student"}!</p>
           </div>
           <Button onClick={() => router.push("/dashboard/submit-log")}>
             <FileText className="mr-2 h-4 w-4" />
@@ -97,21 +98,21 @@ export default function StudentDashboard() {
         {!isProfileComplete && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Complete Your Profile</AlertTitle>
+            <AlertTitle>Admin action</AlertTitle>
             <AlertDescription>
-              Please complete your profile to start submitting logs.
-              <Button
+              Wait for Admin approval to be able to access your dashboard.
+              {/* <Button
                 variant="link"
                 className="p-0 h-auto font-semibold ml-2"
                 onClick={() => router.push("/dashboard/profile")}
               >
                 Complete Now
-              </Button>
+              </Button> */}
             </AlertDescription>
           </Alert>
         )}
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Progress Tracker</CardTitle>

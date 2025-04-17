@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Loader2, Upload } from "lucide-react"
+import { Loader2, Upload } from 'lucide-react'
 
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Button } from "@/components/ui/button"
@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { mockUser } from "@/pages/api/mock-data"
 
@@ -93,9 +94,13 @@ export default function SubmitLogPage() {
     }
   }
 
+  // Mock data for industry supervisor (in a real app, this would come from the backend)
+  const supervisorComment = ""
+  const supervisorSignature = null
+
   return (
-    <DashboardLayout userRole="student">
-      <div className="space-y-6 px-5  lg:px-10">
+  //  <DashboardLayout userRole="student">
+      <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Submit Log</h1>
           <p className="text-muted-foreground">Record your daily activities during your industrial training.</p>
@@ -197,25 +202,44 @@ export default function SubmitLogPage() {
                     </FormItem>
                   )}
                 />
+                
+                <Separator className="my-6" />
 
-                <FormField
-                  control={form.control}
-                  name="supervisorVerified"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>IT Supervisor Verification</FormLabel>
-                        <FormDescription>
-                          By checking this box, you confirm that your IT supervisor has verified this log entry.
-                        </FormDescription>
+                {/* Industry Supervisor Comment and Signature Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Industry Supervisor Review</h3>
+                  <p className="text-sm text-muted-foreground">
+                    This section will be filled by your industry supervisor during the weekly review.
+                  </p>
+
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Supervisor Comment</h4>
+                      <div className="border rounded-md p-3 min-h-[100px] bg-muted/30">
+                        {supervisorComment ? (
+                          <p>{supervisorComment}</p>
+                        ) : (
+                          <p className="text-muted-foreground italic">No comments yet</p>
+                        )}
                       </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Supervisor Signature</h4>
+                      <div className="border rounded-md p-3 min-h-[100px] bg-muted/30 flex items-center justify-center">
+                        {supervisorSignature ? (
+                          <img
+                            src={supervisorSignature || "/placeholder.svg"}
+                            alt="Supervisor Signature"
+                            className="max-h-[80px]"
+                          />
+                        ) : (
+                          <p className="text-muted-foreground italic">Not signed yet</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? (
@@ -235,7 +259,6 @@ export default function SubmitLogPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+//    </DashboardLayout>
   )
 }
-

@@ -22,9 +22,21 @@ export function StepTwoStudent({ form }: StepTwoStudentProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Faculty</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. Engineering" {...field} />
-              </FormControl>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your Faculty" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="100L">100L</SelectItem>
+                  <SelectItem value="200L">200L</SelectItem>
+                  <SelectItem value="300L">300L</SelectItem>
+                  <SelectItem value="400L">400L</SelectItem>
+                  <SelectItem value="500L">500L</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
               <FormMessage />
             </FormItem>
           )}
@@ -44,19 +56,6 @@ export function StepTwoStudent({ form }: StepTwoStudentProps) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="course"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Course</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. Software Engineering" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <FormField
           control={form.control}

@@ -1,5 +1,5 @@
 import { UserIcon } from "@sanity/icons";
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { defineField, defineType } from "sanity";
 
 export const userType = defineType({
   name: "user",
@@ -7,18 +7,25 @@ export const userType = defineType({
   type: "document",
   icon: UserIcon,
   fields: [
+    // Clerk UID
     defineField({
       name: "userId",
-      title: "User ID",
+      title: "Clerk User ID",
       type: "string",
       validation: (Rule) => Rule.required(),
       readOnly: true,
-      description: "Unique ID from authentication system",
     }),
 
+    // Split full name
     defineField({
-      name: "userName",
-      title: "User Name",
+      name: "firstName",
+      title: "First Name",
+      type: "string",
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "lastName",
+      title: "Last Name",
       type: "string",
       validation: (Rule) => Rule.required(),
     }),
@@ -27,6 +34,7 @@ export const userType = defineType({
       name: "role",
       title: "User Role",
       type: "string",
+      validation: (Rule) => Rule.required(),
       options: {
         list: [
           { title: "Student", value: "student" },
@@ -37,7 +45,6 @@ export const userType = defineType({
         ],
         layout: "dropdown",
       },
-      validation: (Rule) => Rule.required(),
     }),
 
     defineField({
@@ -48,83 +55,55 @@ export const userType = defineType({
     }),
 
     defineField({
-      name: "contact",
-      title: "Contact Information",
-      type: "object",
-      fields: [
-        defineField({
-          name: "email",
-          title: "Email",
-          type: "string",
-          validation: (Rule) => Rule.email().required(),
-        }),
-        defineField({
-          name: "phoneNumber",
-          title: "Phone Number",
-          type: "string",
-          validation: (Rule) => Rule.required(),
-        }),
-      ],
+      name: "email",
+      title: "Email",
+      type: "string",
+      validation: (Rule) => Rule.email().required(),
     }),
 
-    // Student-specific fields
+    defineField({
+      name: "phoneNumber",
+      title: "Phone Number",
+      type: "string",
+      validation: (Rule) => Rule.required(),
+    }),
+
     defineField({
       name: "studentDetails",
       title: "Student Details",
       type: "object",
       hidden: ({ parent }) => parent?.role !== "student",
       fields: [
-        defineField({
-          name: "registrationNumber",
-          title: "Registration Number",
-          type: "string",
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: "faculty",
-          title: "Faculty",
-          type: "string",
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: "department",
-          title: "Department",
-          type: "string",
-          validation: (Rule) => Rule.required(),
-        }),
+        defineField({ name: "registrationNumber", title: "Registration Number", type: "string", validation: Rule => Rule.required() }),
+        defineField({ name: "faculty", title: "Faculty", type: "string", validation: Rule => Rule.required() }),
+        defineField({ name: "department", title: "Department", type: "string", validation: Rule => Rule.required() }),
         defineField({
           name: "level",
           title: "Level",
           type: "string",
           options: {
-            list: ["100", "200", "300", "400", "500"].map((level) => ({
-              title: `${level} Level`,
-              value: level,
+            list: ["100", "200", "300", "400", "500"].map((l) => ({
+              title: `${l} Level`,
+              value: l,
             })),
           },
-          validation: (Rule) => Rule.required(),
+          validation: Rule => Rule.required(),
         }),
       ],
     }),
 
-    // Staff-specific fields (for non-students)
     defineField({
       name: "staffDetails",
       title: "Staff Details",
       type: "object",
       hidden: ({ parent }) => parent?.role === "student",
       fields: [
-        defineField({
-          name: "idNumber",
-          title: "ID Number",
-          type: "string",
-          validation: (Rule) => Rule.required(),
-        }),
+        defineField({ name: "idNumber", title: "ID Number", type: "string", validation: Rule => Rule.required() }),
         defineField({
           name: "position",
           title: "Position",
           type: "string",
-          hidden: ({ parent }) => parent?.role === "admin",
+          hidden: ({ parent }) => parent?.role === "admin", // no position for admin
         }),
       ],
     }),
@@ -159,27 +138,4 @@ export const userType = defineType({
       readOnly: true,
     }),
   ],
-
-  preview: {
-    select: {
-      title: "fullName",
-      role: "role",
-      status: "authStatus",
-      media: "image",
-      studentId: "studentDetails.registrationNumber",
-      staffId: "staffDetails.idNumber",
-    },
-    prepare(selection) {
-      const { title, role, status, media, studentId, staffId } = selection;
-      const id = studentId || staffId || 'No ID';
-      const roleFormatted = role.charAt(0).toUpperCase() + role.slice(1);
-      const statusFormatted = status.charAt(0).toUpperCase() + status.slice(1);
-
-      return {
-        title: title,
-        subtitle: `${roleFormatted} • ${statusFormatted} • ${id}`,
-        media: media,
-      };
-    },
-  },
 });

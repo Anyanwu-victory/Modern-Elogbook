@@ -80,7 +80,7 @@ export default function AdminDashboard() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Supervisors</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Industry Supervisors</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
@@ -89,6 +89,31 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Institute Supervisors</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-2xl font-bold">{stats.totalSupervisors}</div>
+                <Users className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total ITF Personnel</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-2xl font-bold">{stats.totalSupervisors}</div>
+                <Users className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+{/*           
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total Logs</CardTitle>
@@ -110,7 +135,7 @@ export default function AdminDashboard() {
                 <Clock className="h-5 w-5 text-yellow-500" />
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         <Tabs defaultValue="users">
