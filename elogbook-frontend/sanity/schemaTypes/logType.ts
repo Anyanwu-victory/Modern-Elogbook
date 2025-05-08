@@ -1,6 +1,6 @@
 import { defineField, defineType } from "sanity";
 
-export default defineType({
+export const logType= defineType({
   name: "log",
   title: "Log",
   type: "document",
@@ -15,9 +15,45 @@ export default defineType({
       name: "studentId",
       title: "Student",
       type: "reference",
-      to: [{ type: "student" }],
+      to: [
+        {
+          type: "user",
+          // Filter to only show users with role "student"
+          options: {
+            filter: 'role == $role',
+            filterParams: { role: 'student' },
+          },
+        },
+      ],
       validation: (Rule) => Rule.required(),
     }),
+    defineField(
+      {
+        name: 'day',
+        title: 'Day of Week',
+        type: 'string',
+        options: {
+          list: [
+            {title: 'Monday', value: 'Monday'},
+            {title: 'Tuesday', value: 'Tuesday'},
+            {title: 'Wednesday', value: 'Wednesday'},
+            {title: 'Thursday', value: 'Thursday'},
+            {title: 'Friday', value: 'Friday'},
+            {title: 'Saturday', value: 'Saturday'}
+            // ... other days
+          ],
+        },
+        validation: Rule => Rule.required(),
+      },
+    ),    
+    // In your logType schema
+    defineField({
+      name: "weekNumber",
+      title: "Week Number",
+      type: "number",
+      description: "Week of the year (1-52)",
+      validation: (Rule) => Rule.required().min(1).max(52),
+    }),    
     defineField({
       name: "date",
       title: "Date",
@@ -30,30 +66,22 @@ export default defineType({
       type: "text",
       validation: (Rule) => Rule.required().min(10),
     }),
+
     defineField({
-      name: "skills",
-      title: "Skills Learned",
-      type: "array",
-      of: [{ type: "string" }],
-    }),
-    defineField({
-      name: "challenges",
-      title: "Challenges Faced",
-      type: "text",
-    }),
-    defineField({
-      name: "images",
-      title: "Images",
+      name: "image",
+      title: "Image",
       type: "array",
       of: [
         {
           type: "image",
           options: {
+            accept: 'image/*',
             hotspot: true,
           },
         },
       ],
     }),
+    
     defineField({
       name: "status",
       title: "Status",
@@ -62,7 +90,7 @@ export default defineType({
         list: [
           { title: "Pending", value: "pending" },
           { title: "Approved", value: "approved" },
-          { title: "Rejected", value: "rejected" },
+          { title: "Reviewed", value: "reviewed" },
         ],
       },
       initialValue: "pending",
@@ -77,6 +105,15 @@ export default defineType({
       title: "Industry Supervisor Feedback",
       type: "text",
     }),
+    defineField({
+      name: "industrySupervisorSignature",
+      title: "Industry Supervisor Signature",
+      type: "image",
+      options: {
+        hotspot: true,
+      },
+    }),    
+    
     defineField({
       name: "createdAt",
       title: "Created At",

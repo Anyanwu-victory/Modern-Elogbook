@@ -36,6 +36,7 @@ const signupSchema = z.object({
   fullName: z.string().min(3, "Full name must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
+  //role: z.enum(["student", "industrySupervisor","instituteSupervisor",""]),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string().min(8, "Confirm Password is required"),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -55,6 +56,7 @@ export default function SignUpPage() {
       fullName: "",
       email: "",
       phoneNumber: "",
+    //  role: undefined,
       password: "",
       confirmPassword: "",
     },
@@ -72,10 +74,11 @@ export default function SignUpPage() {
       const result = await signUp.create({
         emailAddress: data.email,
         password: data.password,
-        firstName: data.fullName.split(" ")[0], // Extract first name
-        lastName: data.fullName.split(" ")[1] || "", // Extract last name
-        unsafeMetadata: {
+        
+        unsafeMetadata: {  
           fullName: data.fullName,
+          firstName: data.fullName.split(" ")[0],
+          lastName: data.fullName.split(" ")[1] || "",
           phoneNumber: data.phoneNumber,
           status: "pending", // Awaiting admin approval
         },
@@ -165,8 +168,36 @@ export default function SignUpPage() {
               </FormItem>
             )}
           />
-          
+{/* 
           <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem className="mb-4 w-full">
+                    <FormLabel>Role</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full enabled:hover:border-blue-600 disabled:opacity-75">
+                          <SelectValue placeholder="Select your role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-bg1">
+                        <SelectItem value="student">Student</SelectItem>
+                        <SelectItem value="lecturer">Lecturer</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+        
+*/}
+          <FormField 
             control={form.control}
             name="password"
             render={({ field }) => (

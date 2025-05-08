@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
@@ -17,23 +17,58 @@ import {
 
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { getClient } from "@/sanity/lib/sanity.client";
+import {useUser} from "@clerk/nextjs";
+import {getStudentLogsQuery} from "@/sanity/lib/sanity.queries"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { mockLogs, mockUser } from "@/pages/api/mock-data";
 
 export default function MyLogsPage() {
-  const user = mockUser;
+  const {user , isSignedIn , isLoaded} = useUser();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedLog, setSelectedLog] = useState(null);
+  const { toast } = useToast();
+  const [logs, setLogs] = useState<Log[]>([]);
+  const [selectedLog, setSelectedLog] = useState<Log | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const itemsPerPage = 5;
+  
+  useEffect(() => {
+    const fetchLogs = async () => {
+      if (!user?.id) return;
+  
+      if (!isLoaded || !user) {
+        toast({
+          title: "Error",
+          description: "Please sign in to submit logs",
+          variant: "destructive",
+        });
+        return;
+      }
+    
+      try {
+        const client = getClient(); // no token needed for read
+        const query = getStudentLogsQuery(user.id);
+        const result = await client.fetch(query);
+
+        setLogs(result);
+      } catch (error) {
+        console.error("Failed to fetch logs:", error);
+      }
+    };
+
+    fetchLogs();
+  }, [user?.id]);
+
+
 
   const filteredLogs = mockLogs.filter((log) =>
     (log.activity.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,17 +79,22 @@ export default function MyLogsPage() {
 
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
+  
+  const handleViewLog = (log: Log) => {
+    setSelectedLog(log);
+  }
+  
   return (
-//    <DashboardLayout userRole="student">
+//<DashboardLayout userRole="student">
 <>
+
       <Header router={router} />
       <Filters searchTerm={searchTerm} setSearchTerm={setSearchTerm} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
-      <LogsTable logs={paginatedLogs} onViewLog={setSelectedLog} openDialog={setIsDialogOpen} />
+      <LogsTable logs={logs} onViewLog={handleViewLog} openDialog={setIsDialogOpen} />
       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       <LogDetailsDialog log={selectedLog} isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} />
       </>
-  //  </DashboardLayout>
+//</DashboardLayout>
   );
 }
 
@@ -65,7 +105,7 @@ interface HeaderProps {
 
 function Header({ router }: HeaderProps) {
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mx-3">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">My Logs</h1>
         <p className="text-muted-foreground">View and manage your submitted logs.</p>
@@ -119,12 +159,27 @@ const InputWithIcon = ({ icon: Icon, value, onChange, placeholder }: InputWithIc
   </div>
 );
 
-interface Log {
+export interface Log {
   id: string;
+  _type: 'log'
   day: string;
   date: string;
-  activity: string;
-  status: 'approved' | 'pending' | 'rejected';
+  activities: string;
+  status: 'approved' | 'pending' | 'reviewed';
+  student?: {
+    _ref: string;
+    _type: 'reference';
+  };
+  // I need feedback, add it explicitly:
+  industrySupervisorFeedback?: string;
+  institutionSupervisorFeedback?: string;
+  industrySupervisorSignature?: {
+    _type: 'file';
+    asset: {
+      _type: 'reference';   
+      _ref: string;
+    }
+  };
 }
 
 interface LogsTableProps {
@@ -136,6 +191,7 @@ interface LogsTableProps {
 
 function LogsTable({ logs, onViewLog, openDialog }: LogsTableProps) {
     //const handleViewLog = (log: Log) => {
+    
   return (
     <div className="rounded-md border">
       <Table>
@@ -154,7 +210,7 @@ function LogsTable({ logs, onViewLog, openDialog }: LogsTableProps) {
               <TableRow key={log.id}>
                 <TableCell>{log.day}</TableCell>
                 <TableCell>{log.date}</TableCell>
-                <TableCell>{log.activity}</TableCell>
+                <TableCell>{log.activities}</TableCell>
                 <TableCell><StatusBadge status={log.status} /></TableCell>
                 <TableCell>
                   <Button variant="outline" size="icon" onClick={() => { onViewLog(log); openDialog(true); }}>
@@ -210,16 +266,47 @@ function LogDetailsDialog({ log, isOpen, onClose }: LogDetailsDialogProps) {
           <DialogTitle>Log Details</DialogTitle>
           <DialogDescription>{log?.day}, {log?.date}</DialogDescription>
         </DialogHeader>
-        <p>{log?.activity}</p>
-        <StatusBadge status={log?.status} />
-        {log?.feedback && <p>{log.feedback}</p>}
+        
+        <h1 className="font-bold">Activity</h1>
+        <p>{log?.activities}</p>
+        
+        <h1 className="font-bold">Status </h1>
+        <StatusBadge status={log?.status || 'pending'} />
+
+        <p className="font-bold">Industry Supervisor Feedback:</p>
+        {log?.industrySupervisorFeedback || <p>{'No feedback yet'}</p>}
+        
+        <p className="font-bold"> Industry Supervisor Signature:</p>
+        {log?.industrySupervisorSignature && (
+          <img 
+           src={log.industrySupervisorSignature.asset._ref}
+           alt="Industry Supervisor Signature"
+            className="w-32 h-32 rounded-md border"
+          />
+        )}
+
         <Button onClick={onClose}>Close</Button>
       </DialogContent>
     </Dialog>
   );
 }
 
-function StatusBadge({ status }) {
-  const variants = { approved: "success", pending: "outline", rejected: "destructive" };
-  return <Badge variant={variants[status]}>{status}</Badge>;
+// Add type for status variants
+const statusVariants: Record<'approved' | 'pending' | 'reviewed', string> = {
+  approved: 'bg-green-100 text-green-800',
+  pending: 'bg-yellow-100 text-yellow-800',
+  reviewed: 'bg-red-100 text-red-800',
+};
+
+// Then type your component props:
+interface StatusBadgeProps {
+  status: 'approved' | 'pending' | 'reviewed';
 }
+
+const StatusBadge = ({ status }: StatusBadgeProps) => {
+  return (
+    <span className={`text-xs font-medium px-2.5 py-0.5 rounded ${statusVariants[status]}`}>
+      {status}
+    </span>
+  );
+};

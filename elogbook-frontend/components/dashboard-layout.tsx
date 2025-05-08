@@ -64,7 +64,7 @@ const TABS = {
     { value: "dashboard", name: "Dashboard", icon: Home },
     { value: "submit-logs", name: "Submit Logs", icon: FileText },
     { value: "my-logs", name: "My Logs", icon: ClipboardList },
-    { value: "profile", name: "Profile", icon: Users },
+    //{ value: "profile", name: "Profile", icon: Users },
   ],
   admin: [
     { value: "dashboard", name: "Dashboard", icon: Home },
@@ -146,7 +146,7 @@ const TAB_CONTENT: Record<TabValue, React.ReactNode> = {
              {user?.firstName?.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.fullName}</p>
+              <p className="text-sm font-medium truncate">{user?.firstName}</p>
               <p className="text-xs text-muted-foreground truncate">
                 {user?.primaryEmailAddress?.emailAddress}
               </p>
@@ -249,7 +249,9 @@ const TAB_CONTENT: Record<TabValue, React.ReactNode> = {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setActiveTab("profile")}> <Users className="mr-2 h-4 w-4" /> Profile </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout}> <LogOut className="mr-2 h-4 w-4" /> Logout </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                     <LogOut className="mr-2 h-4 w-4" /> Logout
+                      </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

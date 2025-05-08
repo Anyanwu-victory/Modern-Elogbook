@@ -631,3 +631,446 @@ export function DashboardLayout({ children, userRole }: DashboardLayoutProps) {
     </div>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+const onSubmit = async (data: FormData) => {
+  setIsSubmitting(true);
+
+  try {
+    const existingUser = await client.fetch(
+      `*[_type == "user" && clerkId == $clerkId][0]`,
+      { clerkId: user?.id }
+    );
+
+    if (existingUser) {
+      toast({
+        title: "Account already set up",
+        description: "You’ve already completed your setup.",
+        variant: "destructive",
+      });
+      router.push(getDashboardPath(existingUser.role));
+      return;
+    }
+
+    let signatureAsset;
+    if (data.signature?.length > 0) {
+      signatureAsset = await client.assets.upload("image", data.signature[0], {});
+    }
+
+    const userDoc = {
+      _type: "user",
+      clerkId: user?.id,
+      phoneNumber: data.phoneNumber,
+      role: data.role,
+
+      ...(data.role === "student" && {
+        faculty: data.faculty,
+        department: data.department,
+        course: data.course,
+        level: data.level,
+        matricNo: data.matricNo,
+        organizationName: data.organizationName,
+        organizationAddress: data.organizationAddress,
+        supervisorName: data.supervisorName,
+        supervisorEmail: data.supervisorEmail,
+        startDate: data.startDate,
+        endDate: data.endDate,
+      }),
+      ...(data.role === "industry_supervisor" && {
+        staffId: data.staffId,
+        organizationName: data.organizationName,
+        department: data.department,
+        section: data.section,
+        signature: signatureAsset ? {
+          _type: "image",
+          asset: { _ref: signatureAsset._id }
+        } : undefined,
+      }),
+      ...(data.role === "institution_supervisor" && {
+        staffId: data.staffId,
+        position: data.position,
+        faculty: data.faculty,
+        department: data.department,
+        signature: signatureAsset ? {
+          _type: "image",
+          asset: { _ref: signatureAsset._id }
+        } : undefined,
+      }),
+      ...(data.role === "itf" && {
+        staffId: data.staffId,
+        officeLocation: data.officeLocation,
+      }),
+      ...(data.role === "admin" && {
+        staffId: data.staffId,
+        faculty: data.faculty,
+        signature: signatureAsset ? {
+          _type: "image",
+          asset: { _ref: signatureAsset._id }
+        } : undefined,
+      }),
+    };
+
+    await client.create(userDoc);
+
+    toast({
+      title: "Account setup complete",
+      description: "Redirecting to your dashboard...",
+    });
+
+    onOpenChange(false);
+    router.push(getDashboardPath(data.role));
+
+  } catch (error) {
+    console.error("Error setting up account:", error);
+    toast({
+      title: "Error",
+      description: "There was an error setting up your account. Please try again.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+//   const onSubmit = async (data: FormData) => {
+//     setIsSubmitting(true)
+
+// try {
+  
+
+//     let signatureAsset;
+//     if (data.signature && data.signature.length > 0) {
+//       signatureAsset = await client.assets.upload("image", data.signature[0], {});
+//     }
+
+//     const userDoc = {
+//       _type: "user",
+//       clerkId: user?.id,
+//       // email: user?.emailAddresses[0]?.emailAddress,
+//       // firstName: user?.firstName,
+//       // lastName: user?.lastName,
+//       // PhoneNumber: data.phoneNumber,
+//       // role: data.role,
+
+//       //student fields
+//       ...(data.role === "student" && {
+//         faculty: data.faculty,
+//         department: data.department,
+//         course: data.course,
+//         level: data.level,
+//         matricNo: data.matricNo,
+//         organizationName: data.organizationName,
+//         organizationAddress: data.organizationAddress,
+//         supervisorName: data.supervisorName,
+//         supervisorEmail: data.supervisorEmail,
+//         startDate: data.startDate,
+//         endDate: data.endDate,
+//       }),
+//       //industry supervisor fields
+//       ...(data.role === "industry_supervisor" && {
+//         staffId: data.staffId,
+//         organizationName: data.organizationName,
+//         department: data.department,
+//         section: data.section,
+//         phoneNumber: data.phoneNumber,
+//         signature: signatureAsset ? 
+//           { _type: "image", asset: { _ref: signatureAsset._id } } : undefined,
+//       }),
+//       //institution supervisor fields
+//       ...(data.role === "institution_supervisor" && {
+//         staffId: data.staffId,
+//         position: data.position,
+//         faculty: data.faculty,
+//         department: data.department,
+//         phoneNumber: data.phoneNumber,
+//         signature: signatureAsset ? 
+//         { _type: "image", asset: { _ref: signatureAsset._id } } : undefined,
+//       }),
+//       //ITF fields
+//       ...(data.role === "itf" && {
+//         staffId: data.staffId,
+//         officeLocation: data.officeLocation,
+//         phoneNumber: data.phoneNumber,
+//       }),
+//       //admin fields
+//       ...(data.role === "admin" && {
+//         staffId: data.staffId,
+//         faculty: data.faculty,
+//         phoneNumber: data.phoneNumber,
+//         signature: signatureAsset ? 
+//         { _type: "image", asset: { _ref: signatureAsset._id } } : undefined,
+//       }),
+//     }
+
+//     //Check if user already exists in Sanity 
+//     const existingUser = await client.fetch(
+//       `*[_type == "user" && clerkId == $clerkId][0]`,
+//       { clerkId: user?.id }
+//     )
+   
+//     if (existingUser) {
+//       await client
+//           .patch(existingUser._id)
+//           .set(userDoc)
+//           .commit()
+//     } else {
+//       await client.create(userDoc)
+//     }
+//     toast({
+//       title: "Account setup complete",
+//       description: "Your account has been successfully set up.",
+//     })
+//     onOpenChange(false)
+//     onComplete()
+//   } catch (error) {
+//     console.error("Error setting up account:", error)
+//     toast({
+//       title: "Error",
+//       description: "There was an error setting up your account. Please try again.",
+//       variant: "destructive",
+//     })
+//   } finally {
+//     setIsSubmitting(false)
+//   }
+//     // In a real application, you would send this data to your backend
+//     console.log("Form submitted:", data)
+
+
+//   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// app/api/setup-profile/route.ts
+
+import { NextResponse } from 'next/server';
+import { getClient } from "@/sanity/lib/sanity.client" // Adjust the path to your sanity client
+import { revalidatePath } from 'next/cache'; // Optional
+import { z } from 'zod';
+import {writeToken} from "@/sanity/lib/sanity.api"; // Adjust the path to your sanity API
+
+
+const profileSchema = z.object({
+  userId: z.string(),
+  role: z.enum(["student", "industry_supervisor", "institution_supervisor", "itf", "admin"]),
+  signature: z.string().optional(), // Base64 or file name
+  data: z.record(z.any())
+});
+
+export async function POST(req: Request) {
+     const client = getClient({ token: writeToken });
+
+  try {
+    const body = await req.json();
+    const parsed = profileSchema.parse(body);
+
+    const { userId, role, data, signature } = parsed;
+    
+    console.log("submitting with clerk ID:",userId);
+
+    const existingUser = await client.fetch(
+      `*[_type == "user" && clerkId == $clerkId][0]`,
+      { clerkId: userId }
+    );
+
+    
+    if (!existingUser) {
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
+
+    let signatureAsset;
+    if (signature) {
+      const buffer = Buffer.from(signature.split(',')[1], 'base64');
+      signatureAsset = await client.assets.upload('image', buffer, {
+        filename: 'signature.png',
+        contentType: 'image/png',
+      });
+    }
+
+    const patchFields: any = {
+      ...(role === "student" && {
+        faculty: data.faculty,
+        department: data.department,
+        course: data.course,
+        level: data.level,
+        matricNo: data.matricNo,
+        organizationName: data.organizationName,
+        organizationAddress: data.organizationAddress,
+        supervisorName: data.supervisorName,
+        supervisorEmail: data.supervisorEmail,
+        startDate: data.startDate,
+        endDate: data.endDate,
+      }),
+      ...(role === "industry_supervisor" && {
+        staffId: data.staffId,
+        organizationName: data.organizationName,
+        department: data.department,
+        section: data.section,
+        phoneNumber: data.phoneNumber,
+        signature: signatureAsset ? {
+          _type: "image",
+          asset: { _ref: signatureAsset._id }
+        } : undefined,
+      }),
+      ...(role === "institution_supervisor" && {
+        staffId: data.staffId,
+        position: data.position,
+        faculty: data.faculty,
+        department: data.department,
+        phoneNumber: data.phoneNumber,
+        signature: signatureAsset ? {
+          _type: "image",
+          asset: { _ref: signatureAsset._id }
+        } : undefined,
+      }),
+      ...(role === "itf" && {
+        staffId: data.staffId,
+        officeLocation: data.officeLocation,
+        phoneNumber: data.phoneNumber,
+      }),
+      ...(role === "admin" && {
+        staffId: data.staffId,
+        faculty: data.faculty,
+        phoneNumber: data.phoneNumber,
+        signature: signatureAsset ? {
+          _type: "image",
+          asset: { _ref: signatureAsset._id }
+        } : undefined,
+      }),
+    };
+
+    await client
+      .patch(existingUser._id)
+      .set(patchFields)
+      .commit();
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error: any) {
+    console.error("API Error:", error);
+    return NextResponse.json({ error: error.message || "Server error" }, { status: 500 });
+  }
+}

@@ -62,16 +62,20 @@ export const POST = async (req: Request) => {
 
     const email =
       user.unsafe_metadata?.email ||
-      (user.email_addresses.length > 0
+      (Array.isArray(user.email_addresses) && user.email_addresses.length > 0
         ? user.email_addresses[0].email_address
-        : "Unknown Email");
+        : "unknown@email.com");
 
     const userDoc = {
       _id: `user-${user.id}`,
       _type: "user",
       userId: user.id,
-      fullName: fullName,
-      role: (user.unsafe_metadata?.role || "student").toLowerCase(),
+      //fullName: fullName,
+      firstName: user.unsafe_metadata?.firstName || user.first_name || "Unknown",
+      lastName: user.unsafe_metadata?.lastName || user.last_name || "",
+ 
+
+//      role: (user.unsafe_metadata?.role || "student").toLowerCase(),
       image: imageRef
         ? {
             _type: "image",
@@ -85,29 +89,31 @@ export const POST = async (req: Request) => {
         _type: "object",
         email: email,
         phoneNumber: user.unsafe_metadata?.phoneNumber,
-      },
-      academic: {
-        _type: "object",
-        faculty: facultyId
-          ? {
-              _type: "reference",
-              _ref: facultyId,
-            }
-          : undefined,
-        department: departmentId
-          ? {
-              _type: "reference",
-              _ref: departmentId,
-            }
-          : undefined,
-        ...(user.unsafe_metadata?.role === "student" && {
-          level: user.unsafe_metadata?.level,
-          regNumber: user.unsafe_metadata?.registrationNumber,
-        }),
-        ...(user.unsafe_metadata?.role !== "student" && {
-          staffId: user.unsafe_metadata?.idNumber,
-        }),
-      },
+       },
+
+      // academic: {
+      //   _type: "object",
+      //   faculty: facultyId
+      //     ? {
+      //         _type: "reference",
+      //         _ref: facultyId,
+      //       }
+      //     : undefined,
+      //   department: departmentId
+      //     ? {
+      //         _type: "reference",
+      //         _ref: departmentId,
+      //       }
+      //     : undefined,
+      //   // ...(user.unsafe_metadata?.role === "student" && {
+      //   //   level: user.unsafe_metadata?.level,
+      //   //   regNumber: user.unsafe_metadata?.registrationNumber,
+      //   // }),
+      //   //  ...(user.unsafe_metadata?.role !== "student" && {
+      //   //   staffId: user.unsafe_metadata?.idNumber,
+      //   // }),
+      // },
+      
       authStatus: "pending",
     };
 
@@ -116,10 +122,12 @@ export const POST = async (req: Request) => {
       .createIfNotExists(userDoc)
       .patch(`user-${user.id}`, (p) => p.set(userDoc))
       .commit();
-
+       console.log("✅user created in Sanity")
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {
     console.error("Webhook processing failed:", err);
+    //console.error("❌ Sanity commit failed:", sanityError);
+  
     return new Response(
       JSON.stringify({
         error: err instanceof Error ? err.message : "An unknown error occurred",

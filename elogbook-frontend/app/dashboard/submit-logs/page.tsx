@@ -1,15 +1,13 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Loader2, Upload } from 'lucide-react'
-
-import { DashboardLayout } from "@/components/dashboard-layout"
+import DashboardLayout from "@/components/dashboard/DashboardLayout"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -28,6 +26,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { mockUser } from "@/pages/api/mock-data"
+import { getClient } from "@/sanity/lib/sanity.client"
+import { writeToken } from "@/sanity/lib/sanity.api";
+import {useUser} from "@clerk/nextjs";
+import {auth} from "@clerk/nextjs/server"
 
 const logFormSchema = z.object({
   day: z.string({
@@ -40,15 +42,37 @@ const logFormSchema = z.object({
     message: "Activity description must be at least 10 characters.",
   }),
   image: z.any().optional(),
-  supervisorVerified: z.boolean().refine((val) => val === true, {
-    message: "IT Supervisor verification is required.",
-  }),
 })
+
+/**
+ * Calculates the week number of a given date based on the ISO week date system.
+ *
+ * @param date - The date for which the week number is to be calculated.
+ * @returns The week number of the year for the provided date.
+ *
+ * @remarks
+ * This function determines the week number by calculating the number of days
+ * passed since the start of the year and dividing it by 7, while accounting
+ * for the day of the week of the year's start.
+ *
+ * @example
+ * ```typescript
+ * const date = new Date('2023-03-15');
+ * const weekNumber = getWeekNumber(date);
+ * console.log(weekNumber); // Outputs the week number for March 15, 2023
+ * ```
+ */
+
+function getWeekNumber(date: Date): number { 
+  const startOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date.getTime() - startOfYear.getTime()) / 86400000;
+  return Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+}
 
 type LogFormValues = z.infer<typeof logFormSchema>
 
 export default function SubmitLogPage() {
-  const user = mockUser
+  const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -59,7 +83,7 @@ export default function SubmitLogPage() {
     day: "",
     date: new Date().toISOString().split("T")[0],
     activity: "",
-    supervisorVerified: false,
+    image: null,
   }
 
   const form = useForm<LogFormValues>({
@@ -67,21 +91,68 @@ export default function SubmitLogPage() {
     defaultValues,
     mode: "onChange",
   })
+ 
+  async function onSubmit(data: LogFormValues) {
+    
+    console.log(data)
 
-  function onSubmit(data: LogFormValues) {
+    if (!isSignedIn || !user) {
+      toast({
+        title: "Error",
+        description: "Please sign in to submit logs",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsSubmitting(true)
 
-    // In a real application, you would send this data to your backend
-    setTimeout(() => {
-      setIsSubmitting(false)
-      toast({
-        title: "Log submitted",
-        description: "Your log has been submitted successfully.",
-      })
-      router.push("/dashboard/my-logs")
-    }, 1500)
-  }
-
+    const weekNumber = getWeekNumber(new Date(data.date));
+    
+      try {
+    
+        const response = await fetch('/api/submit-logs', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            // Prepare data matching your schema
+            title: `${data.day} Log`,
+            studentId: user.id,
+            day: data.day,
+            weekNumber,
+            date: data.date,
+            activities: data.activity,
+            image: data.image ? data.image : null, // Handle image upload separately or via base64 
+            // Handle image upload separately or via base64
+          }),
+        });
+    
+        if (!response.ok) throw new Error('Submission failed');
+        // if (data.image && data.image.size > 5 * 1024 * 1024) { // 5MB
+        //   throw new Error('Image must be smaller than 5MB');
+        // }
+       toast({ title: "Log submitted successfully" });
+        router.push("/dashboard/my-logs");
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: 'Failed to submit log. Please try again.',
+          variant: "destructive",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+    
+//     async function convertToBase64(file: File): Promise<string> {
+//   return new Promise((resolve, reject) => {
+//     const reader = new FileReader();
+//     reader.readAsDataURL(file);
+//     reader.onload = () => resolve(reader.result?.toString().split(',')[1] || '');
+//     reader.onerror = error => reject(error);
+//   });
+// }
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -99,9 +170,9 @@ export default function SubmitLogPage() {
   const supervisorSignature = null
 
   return (
-  //  <DashboardLayout userRole="student">
+  //<DashboardLayout userRole="student">
       <div className="space-y-6">
-        <div>
+        <div className="space-x-2 mx-3">
           <h1 className="text-3xl font-bold tracking-tight">Submit Log</h1>
           <p className="text-muted-foreground">Record your daily activities during your industrial training.</p>
         </div>
@@ -184,7 +255,8 @@ export default function SubmitLogPage() {
                     <FormItem>
                       <FormLabel>Upload Image (Optional)</FormLabel>
                       <FormControl>
-                        <Input type="file" accept="image/*" onChange={handleImageChange} className="cursor-pointer" />
+                        <Input type="file" accept="image/*" onChange={handleImageChange} 
+                        className="cursor-pointer" />
                       </FormControl>
                       <FormDescription>
                         Upload an image related to your activity (e.g., work environment, project, etc.)
@@ -259,6 +331,6 @@ export default function SubmitLogPage() {
           </CardContent>
         </Card>
       </div>
-//    </DashboardLayout>
+//  </DashboardLayout>
   )
 }

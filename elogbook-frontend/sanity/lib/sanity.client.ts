@@ -25,6 +25,7 @@ export function getClient(preview?: { token: string }): SanityClient {
     projectId,
     dataset,
     apiVersion,
+    token: process.env.SANITY_API_WRITE_TOKEN || preview?.token,
     useCdn,
   });
 
@@ -53,7 +54,8 @@ export async function getAllFaculties(
   return (await client.fetch(facultyQuery)) || [];
 }
 
-//   export async function getSettings(client: SanityClient): Promise<Settings> {
+//   export async function getSettings(client: SanityClient):
+//  Promise<Settings> {
 //     return (await client.fetch(settingsQuery)) || {}
 //   }
 

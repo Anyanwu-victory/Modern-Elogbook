@@ -12,11 +12,6 @@ import { Badge } from "@/components/ui/badge"
 import { useUser } from "@clerk/nextjs"
 
 // Mock user data
-const mockUser = {
-  firstName: "Demo",
-  fullName: "Demo User",
-  primaryEmailAddress: { emailAddress: "demo@example.com" },
-}
 
 export default function StudentDashboard() {
   const router = useRouter()
@@ -73,21 +68,21 @@ export default function StudentDashboard() {
 
   if (loading) {
     return (
-      <DashboardLayout userRole="student">
+    //  <DashboardLayout userRole="student">
         <div className="flex items-center justify-center h-[calc(100vh-10rem)]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </DashboardLayout>
+      //</DashboardLayout>
     )
   }
 
   return (
-    <DashboardLayout userRole="student">
+    //<DashboardLayout userRole="student">
       <div className="space-y-6 px-5 lg:px-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Student Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, {user?.username || "Student"}!</p>
+            <p className="text-muted-foreground">Welcome back, {user?.firstName || "Student"}!</p>
           </div>
           <Button onClick={() => router.push("/dashboard/submit-log")}>
             <FileText className="mr-2 h-4 w-4" />
@@ -278,7 +273,7 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+//    </DashboardLayout>
   )
 }
 

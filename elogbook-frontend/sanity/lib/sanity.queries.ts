@@ -1,4 +1,6 @@
 import { groq } from "next-sanity";
+import { getClient } from "@/sanity/lib/sanity.client";
+import { readToken } from "@/sanity/lib/sanity.api";
 
 const postFields = groq`
   _id,
@@ -18,6 +20,45 @@ export const facultyQuery = groq`
 
 export const departmentQuery = groq`
 *[_type == "department"] | order(_updatedAt desc)`;
+
+// sanity.queries.ts
+
+// queries.ts
+export const getStudentLogsQuery = (userId: string) => `
+  *[_type == "log" && studentId._ref == "user-${userId}"] | order(_createdAt desc) {
+    _id,
+    _type,
+    day,
+    date,
+    activities,
+    status,
+    industrySupervisorFeedback,
+    institutionSupervisorFeedback,
+    industrySupervisorSignature {
+      asset->{_id, url}
+    }
+  }
+`;
+
+
+export async function getAllFaculties() {
+  const client = getClient({ token: readToken });
+  const query = `*[_type == "faculty"] | order(name asc) {
+    _id,
+    name
+  }`;
+  return await client.fetch(query);
+}
+
+export async function getAllDepartments() {
+  const client = getClient({ token: readToken });
+  const query = `*[_type == "department"] | order(name asc) {
+    _id,
+    name,
+    "facultyName": faculty->name
+  }`;
+  return await client.fetch(query);
+}
 
 // export const indexQuery = groq`
 // *[_type == "post"] | order(date desc, _updatedAt desc) {

@@ -43,7 +43,7 @@ export default function VerifyEmailPage() {
       // If verification is successful, set the user as active
       if (completeSignUp.status === "complete") {
         await setActive({ session: completeSignUp.createdSessionId });
-        router.push("/setup-account"); // Redirect to dashboard
+        router.push("/setup-account"); // Redirect to set-up
       }
     } catch (err: any) {
       console.error("Error verifying email:", err);
@@ -59,7 +59,8 @@ export default function VerifyEmailPage() {
 
   return (
     <div className="w-full flex flex-col items-center justify-center
-     mx-auto min-h-screen bg-gray-100 dark:bg-bg1 p-8 md:mx-auto md:flex-row md:items-center
+     mx-auto min-h-screen bg-gray-100 dark:bg-bg1 
+     p-8 md:mx-auto md:flex-row md:items-center dark:text-black
       md:justify-center md:space-x-12  "> 
       <div className="w-full max-w-md p-6
        bg-white dark:bg-bg2 rounded-lg shadow-md flex flex-col items-center justify-center">

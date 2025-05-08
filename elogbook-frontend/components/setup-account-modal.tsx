@@ -1,11 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Loader2 } from "lucide-react"
-
+import { Loader2, StarOffIcon } from "lucide-react"
+import {useUser} from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
+import { getClient } from "@/sanity/lib/sanity.client"
+import { writeToken } from "@/sanity/lib/sanity.api"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -29,6 +32,7 @@ import { StepThreeInstitutionSupervisor } from "@/components/setup-steps/step-th
 import { StepThreeITF } from "@/components/setup-steps/step-three-itf"
 import { StepThreeAdmin } from "@/components/setup-steps/step-three-admin"
 import { StepIndicator } from "@/components/setup-steps/step-indicator"
+import { Phetsarath } from "next/font/google"
 
 // Define the form schema for each step
 const stepOneSchema = z.object({
@@ -77,6 +81,7 @@ const stepThreeIndustrySupervisorSchema = z.object({
   department: z.string().min(2, { message: "Department must be at least 2 characters." }),
   section: z.string().min(2, { message: "Section must be at least 2 characters." }),
   phoneNumber: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
+  signature: z.any().optional(),
 })
 
 const stepThreeInstitutionSupervisorSchema = z.object({
@@ -125,15 +130,19 @@ const formSchema = z.object({
 })
 
 type FormData = z.infer<typeof formSchema>
+type Role = "student" | "industry_supervisor" | "institution_supervisor" | "itf" | "admin"
 
 interface SetupAccountModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
-  onComplete: () => void
+  onComplete: (role: Role) => void
 }
 
 export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAccountModalProps) {
   const [step, setStep] = useState(1)
+  const { user } = useUser()
+  const router = useRouter()
+  const client = getClient({ token: writeToken })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
 
@@ -163,6 +172,25 @@ export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAcc
     },
     mode: "onChange",
   })
+
+
+  const getDashboardPath = (role: string) => {
+    switch (role) {
+      case "student":
+        return "/dashboard";
+      case "industry_supervisor":
+        return "/industrySupervisor";
+      case "institution_supervisor":
+        return "/instituteSupervisor";
+      case "itf":
+        return "/itfPersonnel";
+      case "admin":
+        return "/admin";
+      default:
+        return "/"; // fallback
+    }
+  };
+    
 
   const role = form.watch("role")
   const totalSteps = 3
@@ -223,28 +251,69 @@ export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAcc
   }
 
   const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true)
-
-    // In a real application, you would send this data to your backend
-    console.log("Form submitted:", data)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
+    setIsSubmitting(true);
+  
+    try {
+      let signatureBase64: string | undefined;
+  
+      if (data.signature && data.signature.length > 0) {
+        const file = data.signature[0];
+        const reader = new FileReader();
+        signatureBase64 = await new Promise((resolve, reject) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+  
+      const { role, ...rest } = data;
+  
+      const response = await fetch("/api/setup-profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          role,
+          signature: signatureBase64,
+          ...rest, // Spread the rest of the fields based on the role
+        }),
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to set up profile.");
+      }
+  
       toast({
         title: "Account setup complete",
         description: "Your account has been successfully set up.",
-      })
-      onOpenChange(false)
-      onComplete()
-    }, 1500)
+      });
+  
+      onOpenChange(false);
+      onComplete?.(role);
+  
+      router.push(getDashboardPath(role));
+  
+    } catch (error) {
+      console.error("Error setting up account:", error);
+      toast({
+        title: "Error",
+        description: "There was an error setting up your account. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
-
+  
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Account Setup</DialogTitle>
+          
+          <DialogTitle>Account Setup {user?.firstName}</DialogTitle>
           <DialogDescription>Complete your account setup to start using the E-Logbook system.</DialogDescription>
         </DialogHeader>
 
