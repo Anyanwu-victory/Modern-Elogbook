@@ -14,6 +14,15 @@ export const weeklyReportType = defineType({
         validation: (Rule) => Rule.required(),
       }),
       defineField({
+        name: "matriNo",
+        type: "reference",
+        to: [{ type: "user" }],
+        options: {
+          filter: 'role == "student"',
+        },
+        validation: (Rule) => Rule.required(),
+      }),
+      defineField({
         name: "weekNumber",
         type: "number",
         validation: (Rule) => Rule.required().min(1).max(52),

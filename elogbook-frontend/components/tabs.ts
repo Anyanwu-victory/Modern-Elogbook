@@ -16,7 +16,6 @@ export const TABS = {
   ],
   industrySupervisor: [
     { value: "industrySupervisor", name: "Dashboard", icon: Home },
-    { value: "students", name: "Students", icon: Users },
     { value: "review-logs", name: "Review Logs", icon: ClipboardList },
     { value: "calendar", name: "Calendar", icon: Calendar },
   ],

@@ -6,7 +6,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+
 } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input";
 
 interface StepThreeIndustrySupervisorProps {
@@ -51,6 +53,21 @@ export function StepThreeIndustrySupervisor({
             </FormItem>
           )}
         />
+
+<FormField
+          control={form.control}
+          name="organizationAddress"
+          render={({ field }) => (
+            <FormItem className="md:col-span-2">
+              <FormLabel>Organization Address</FormLabel>
+              <FormControl>
+                <Textarea placeholder="e.g. 123 Tech Street, Tech City" className="min-h-[80px]" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
 
         <FormField
           control={form.control}

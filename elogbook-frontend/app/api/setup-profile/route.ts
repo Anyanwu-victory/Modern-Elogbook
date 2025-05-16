@@ -60,6 +60,7 @@ export async function PATCH(req: Request) {
         section: rest.section,
         position: rest.position,
         organizationName: rest.organizationName,
+        organizationAddress: rest.organizationAddress,
         officeLocation: rest.officeLocation,
         faculty: rest.faculty,
         signature: rest.signature,

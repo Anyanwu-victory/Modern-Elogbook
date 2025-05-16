@@ -40,6 +40,62 @@ export const getStudentLogsQuery = (userId: string) => `
   }
 `;
 
+export const UserRoleQuery = `
+  *[_type == "user" && userId == $clerkUserId][0].role
+`;
+
+export const AllUsersQuery = groq`
+*[_type == "user"] | order(_createdAt desc) {
+  _id,
+  userId,
+  firstName,
+  lastName,
+  role,
+  contact,
+  image,
+  authStatus,
+  createdAt,
+  lastLogin,
+  studentDetails,
+  staffDetails
+}
+`
+
+export const SubmissionsQuery = groq`*[_type == "log" && industrySupervisor->userId == $userId] | order(_createdAt desc)[0...5] {
+  _id,
+  title,
+  date,
+  status,
+  student-> {
+    name: firstName + " " + lastName,
+    matricNumber: studentDetails.matricNo
+  }
+}`
+
+export const CompanyQuery = groq`
+*[_type == "user" && userId == $userId][0] {
+  staffDetails {
+    organizationName,
+    organizationAddress,
+    department,
+  }
+}
+`;
+
+export const AssignedStudentsQuery = `
+  *[_type == "user" && role == "student" && industrySupervisor._ref == $userId] {
+    _id,
+    firstName,
+    lastName,
+    matricNumber,
+    level,
+    email,
+    institutionSupervisor->{
+      firstName,
+      lastName
+    }
+  }
+`;
 
 export async function getAllFaculties() {
   const client = getClient({ token: readToken });

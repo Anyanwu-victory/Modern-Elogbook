@@ -10,6 +10,7 @@ import { logType } from "./logType";
 import { userType } from "./userType";
 import { supervisorType } from "./supervisorType";
 import {weeklyReportType} from "./weeklyReportType";
+import {visitType} from "./visitType";
 
 
 export const schema: { types: SchemaTypeDefinition[] } = {

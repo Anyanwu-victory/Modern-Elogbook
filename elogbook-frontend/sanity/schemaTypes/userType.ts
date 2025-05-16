@@ -16,6 +16,7 @@ export const userType = defineType({
       validation: (Rule) => Rule.required(),
       readOnly: true,
     }),
+    
 
     defineField({
       name: "firstName",
@@ -30,6 +31,7 @@ export const userType = defineType({
       type: "string",
       validation: (Rule) => Rule.required(),
     }),
+
 
     defineField({
       name: "contact",
@@ -105,6 +107,7 @@ export const userType = defineType({
       fields: [
         defineField({ name: "staffId", title: "Staff ID", type: "string" }),
         defineField({ name: "organizationName", title: "Organization Name", type: "string", hidden: ({ parent }) => parent?.role === "institution_supervisor" }),
+        defineField({ name: "organizationAddress", title: "Organization Address", type: "string", hidden: ({ parent }) => parent?.role === "institution_supervisor" }),
         defineField({ name: "department", title: "Department", type: "string", hidden: ({ parent }) => parent?.role === "admin" }),
         defineField({ name: "section", title: "Section", type: "string", hidden: ({ parent }) => parent?.role !== "industry_supervisor" }),
         defineField({ name: "position", title: "Position", type: "string", hidden: ({ parent }) => parent?.role !== "institution_supervisor" }),
@@ -132,6 +135,28 @@ export const userType = defineType({
     }),
 
     defineField({
+      name: "institutionSupervisor",
+      title: "Institution Supervisor",
+      type: "reference",
+      to: [{ type: "user" }],
+      options: {
+        filter: 'role == $role',
+        filterParams: { role: 'institution_supervisor' },
+      },
+    }),
+    
+    defineField({
+      name: "industrySupervisor",
+      title: "Industry Supervisor",
+      type: "reference",
+      to: [{ type: "user" }],
+      options: {
+        filter: 'role == $role',
+        filterParams: { role: 'industry_supervisor' },
+      },
+    }),
+
+    defineField({
       name: "createdAt",
       title: "Created At",
       type: "datetime",
@@ -150,7 +175,7 @@ export const userType = defineType({
   
   preview: {
     select: {
-      title: "fullName",
+      title: "firstName",
       role: "role",
       status: "authStatus",
       media: "image",
@@ -160,8 +185,8 @@ export const userType = defineType({
     prepare(selection) {
       const { title, role, status, media, studentId, staffId } = selection;
       const id = studentId || staffId || 'No ID';
-      const roleFormatted = role.charAt(0).toUpperCase() + role.slice(1);
-      const statusFormatted = status.charAt(0).toUpperCase() + status.slice(1);
+      const roleFormatted = role ? role.charAt(0).toUpperCase() + role.slice(1) : "No Role";
+      const statusFormatted = status ? status.charAt(0).toUpperCase() + status.slice(1) : "No status";
 
       return {
         title: title,

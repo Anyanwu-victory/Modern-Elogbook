@@ -10,6 +10,7 @@ import  { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigg
 import { Button } from "../ui/button"
 import { ChevronDown } from "lucide-react"
 import { LogOut, Users } from "lucide-react"
+import  UserProfilePage from "@/app/user-profile/page"
 import { useRouter } from "next/navigation"
 
 export interface HeaderProps {
@@ -45,8 +46,8 @@ export function Header({ tabs, activeTab, setActiveTab, user,  onLogout }: Heade
               <DropdownMenu>
                 <DropdownMenuTrigger asChild >
                   <Button variant="ghost" size="sm" className="gap-1">
-                    <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                      {user?.firstName?.charAt(0)}
+                    <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
+                      { String((user?.firstName as string)?.charAt(0))}
                     </div>
                     <ChevronDown className="h-4 w-4" />
                   </Button>

@@ -11,8 +11,13 @@ import { MobileMenu } from "./MobileMenu";
 import SubmitLogPage from "@/app/dashboard/submit-logs/page"
 import StudentDashboard from "@/app/dashboard/page"
 import MyLogsPage from "@/app/dashboard/my-logs/page"
+import IndustrySupervisor from "@/app/industrySupervisor/page"
+import ReviewLogsPage from "@/app/industrySupervisor/review-logs/page"
+import {useToast} from "@/components/ui/use-toast"
+import { toast } from "@/components/ui/use-toast"
 import AdminUserDashboard from "@/app/admin/users/page"
-import { TABS } from "../tabs"
+import {useClerk } from "@clerk/nextjs";
+import { TABS } from "../tabs";
 
 
 interface DashboardLayoutProps {
@@ -46,29 +51,41 @@ export default function DashboardLayout({ children, userRole }: DashboardLayoutP
   const router = useRouter() 
   const [activeTab, setActiveTab] = useState<TabValue>("dashboard")
   const { user } = useUser()
+  const { toast } = useToast()
+  const { signOut } = useClerk(); // Access Clerk's signOut method
 
 
   useEffect(() => setIsMounted(true), [])
   if (!isMounted) return null
 
-  const handleLogout = () =>{
-    router.push("/")
-    console.log("Logging out...")
+  const handleLogout = async () =>{
+    try {
+      await signOut(); // Clear the user's session
+      router.push("/login"); // Redirect to the login page
+      console.log("User logged out successfully.");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
   } 
 
   const tabs = TABS[userRole] || []
 
   const TAB_CONTENT: Record<TabValue, React.ReactNode> = {
-    dashboard: <StudentDashboard/>,
+    dashboard: <>{children}</>,
     admin: <>{children}</>,
-    industrySupervisor: <>{children}</>,
+    industrySupervisor: <> {children} </>,
     instituteSupervisor: <>{children}</>,
     itfPersonnel: <>{children}</>,
     "submit-logs": <SubmitLogPage/>,
     "my-logs": <MyLogsPage />,
     profile: <>{children}</>,
     students: <>{children}</>,
-    "review-logs": <>{children}</>,
+    "review-logs": <ReviewLogsPage/>,
     calendar: <>{children}</>,
     users: <AdminUserDashboard />,
     analytics: <>{children}</>,
@@ -77,9 +94,13 @@ export default function DashboardLayout({ children, userRole }: DashboardLayoutP
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar tabs={tabs} activeTab={activeTab} setActiveTab={(value) => setActiveTab (value as TabValue)} user={user} onLogout={handleLogout} />
+      <Sidebar tabs={tabs} activeTab={activeTab} 
+      setActiveTab={(value) => setActiveTab (value as TabValue)} user={user} 
+      onLogout={handleLogout} />
       <div className="flex-1 md:ml-64">
-        <Header user={user} activeTab={activeTab} setActiveTab={(value) => setActiveTab(value as TabValue)} onLogout={handleLogout} tabs={tabs} />
+        <Header user={user} activeTab={activeTab} 
+        setActiveTab={(value) => setActiveTab(value as TabValue)} 
+        onLogout={handleLogout} tabs={tabs} />
         <main className="flex-1 container py-6">
           {TAB_CONTENT[activeTab]}
         </main>

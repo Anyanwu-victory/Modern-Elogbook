@@ -15,6 +15,9 @@ import {
   // settingsQuery,
   departmentQuery,
   facultyQuery,
+  AllUsersQuery,
+  SubmissionsQuery,
+  CompanyQuery,
   type Department,
   type Faculty,
 } from "@/sanity/lib/sanity.queries";
@@ -53,6 +56,8 @@ export async function getAllFaculties(
 ): Promise<Faculty[]> {
   return (await client.fetch(facultyQuery)) || [];
 }
+
+
 
 //   export async function getSettings(client: SanityClient):
 //  Promise<Settings> {

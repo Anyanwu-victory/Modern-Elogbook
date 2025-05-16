@@ -34,12 +34,17 @@ export const POST = async (req: Request) => {
     const imageRef = user.image_url
       ? await uploadImage(user.image_url)
       : undefined;
-
+    
+    const firstName = user.unsafe_metadata?.firstName || user.first_name || "Unknown";
+    
+    const lastName = user.unsafe_metadata?.lastName || user.last_name || "Unknown";
+    
     const fullName =
       user.unsafe_metadata?.fullName ||
       (user.first_name && user.last_name
         ? `${user.first_name} ${user.last_name}`
         : "Unknown User");
+    
 
     // Helper function to fetch the document ID by name
     const getReferenceId = async (
@@ -71,9 +76,8 @@ export const POST = async (req: Request) => {
       _type: "user",
       userId: user.id,
       //fullName: fullName,
-      firstName: user.unsafe_metadata?.firstName || user.first_name || "Unknown",
-      lastName: user.unsafe_metadata?.lastName || user.last_name || "",
- 
+      firstName: firstName,
+      lastName: lastName,
 
 //      role: (user.unsafe_metadata?.role || "student").toLowerCase(),
       image: imageRef

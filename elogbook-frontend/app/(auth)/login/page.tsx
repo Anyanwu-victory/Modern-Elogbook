@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,99 +16,165 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useSignIn, useUser, useClerk } from "@clerk/nextjs"; // Clerk hooks
-import { useRouter } from "next/navigation"; // For redirecting
+import { useSignIn, useUser, useClerk } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { getClient } from "@/sanity/lib/sanity.client";
+import { UserRoleQuery } from "@/sanity/lib/sanity.queries"; // Your GROQ query for user role
 
 const Bg = "/assets/bg.png";
-const SchoolLogo = "/assets/full-logo.png"; // school logo path
+const SchoolLogo = "/assets/full-logo.png";
 
-// Login Schema
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export default function LoginPage() {
-  // 1. Declare ALL hooks unconditionally at the top
-  const [showPassword, setShowPassword] = useState(false); // For password visibility
-  const [isSubmitting, setIsSubmitting] = useState(false); // For loading state
-  const [error, setError] = useState(""); // For error messages
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Initialize to true
 
-  const { isSignedIn, isLoaded: isUserLoaded } = useUser();
-  const { signIn, setActive, isLoaded: isSignInLoaded } = useSignIn(); // Clerk sign-in hook
-  const { redirectToSignIn } = useClerk(); // Clerk redirect hook
-  const router = useRouter(); // For redirecting
+  const { isSignedIn, user, isLoaded: isUserLoaded } = useUser();
+  const { signIn, setActive, isLoaded: isSignInLoaded } = useSignIn();
+  const { redirectToSignIn } = useClerk();
+  const router = useRouter();
+
+  // Memoized function to fetch user role from Sanity
+  const fetchUserRoleFromSanity = useCallback(async (clerkUserId: string): Promise<string> => {
+    if (!clerkUserId) {
+      console.warn("fetchUserRoleFromSanity called without a clerkUserId.");
+      return "student"; // Default role
+    }
+    try {
+      const client = getClient(); // Assumes getClient() is stable
+      // Ensure UserRoleQuery is your actual GROQ query string
+      // Example: `*[_type == "userProfile" && clerkId == $clerkUserId][0].role`
+      const result = await client.fetch(UserRoleQuery, { clerkUserId });
+
+      // Adapt this based on how your Sanity query returns the role
+      // If result is an object like { role: "admin" }:
+      const role = result?.role || (typeof result === 'string' ? result : null);
+
+      return (role && typeof role === 'string') ? role.trim() : "student"; // Default if role not found/invalid
+    } catch (err) {
+      console.error("Error fetching user role from Sanity:", err);
+      return "student"; // Default role on error
+    }
+  }, []); // Dependencies: Add if getClient or UserRoleQuery are props/state
+
+  // Memoized function to get dashboard path based on role
+  const getDashboardPath = useCallback((role: string) => {
+    switch (role.trim().toLowerCase()) { // Trim and convert to lowercase for robustness
+      case "student": return "/dashboard";
+      case "industry_supervisor": return "/industrySupervisor";
+      case "institution_supervisor": return "/instituteSupervisor";
+      case "itf": return "/itfPersonnel";
+      case "admin": return "/admin";
+      default:
+        console.warn(`Unknown role for dashboard path: '${role}'`);
+        return "/dashboard"; // Sensible default
+    }
+  }, []);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
+    defaultValues: { 
       email: "",
-      password: "",
-    },
+      password: "" },
   });
 
-  // 2. Effects after all hooks
-  // Redirect if already signed in
+  // Effect for initial authentication check and redirection
   useEffect(() => {
-    if (isUserLoaded && isSignInLoaded) {
-      if (isSignedIn) {
-        router.push("/dashboard");
+    const handleAuthCheckAndRedirect = async () => {
+      if (isSignedIn && user && user.id) {
+        // User is signed in, attempt to fetch role and redirect
+        try {
+          const userRole = await fetchUserRoleFromSanity(user.id);
+          const dashboardPath = getDashboardPath(userRole);
+          router.push(dashboardPath);
+          // If redirection happens, this component might unmount, so setting
+          // isCheckingAuth to false might not be necessary for this instance.
+        } catch (e) {
+          console.error("Redirection error after fetching role:", e);
+          toast.error("Failed to redirect based on your role. Using default.");
+          router.push(getDashboardPath("student")); // Fallback redirect
+          setIsCheckingAuth(false); // Stop loading on critical error if not redirecting away
+        }
+      } else {
+        // User is not signed in (or user object not fully available after Clerk load)
+        setIsCheckingAuth(false); // Stop loading, allow login form to render
       }
-      setIsCheckingAuth(false);
-    }
-  }, [isSignedIn, isUserLoaded, isSignInLoaded, router]);
+    };
 
-  // 3. Conditional rendering (never before hooks)
+    // Only run the auth check once Clerk's loading state is resolved
+    if (isUserLoaded && isSignInLoaded) {
+      handleAuthCheckAndRedirect();
+    }
+    // If Clerk is still loading, isCheckingAuth remains true (showing loader),
+    // and the effect will re-run when isUserLoaded/isSignInLoaded change.
+
+  }, [isSignedIn, user, isUserLoaded, isSignInLoaded, router, fetchUserRoleFromSanity, getDashboardPath]);
+
+  // Form submission handler
+  const onSubmit = async (formData: z.infer<typeof loginSchema>) => {
+    setIsSubmitting(true);
+    setError("");
+    try {
+      if (!signIn) {
+        setError("Sign-in service is not available. Please try again later.");
+        setIsSubmitting(false); // Explicitly stop submitting if signIn isn't ready
+        return;
+      }
+      const result = await signIn.create({
+        identifier: formData.email,
+        password: formData.password,
+      });
+
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        toast.success("Login successful!");
+        // Redirection is now handled by the useEffect, which will react to
+        // `isSignedIn` and `user` state changes. This avoids race conditions.
+        // To ensure the loader shows until redirection, you might set isCheckingAuth to true
+        // but this could cause a flicker. It's generally better to let useEffect manage it.
+      } else if (result.status === "needs_first_factor" || result.status === "needs_second_factor") {
+        setError(`Multi-factor authentication required: ${result.status}.`);
+        toast.info("MFA Required", { description: `Please complete the MFA step(s). Status: ${result.status}`});
+        // Clerk's UI components or further redirects might be needed here.
+      } else {
+        setError(`Sign-in failed. Status: ${result.status}`);
+        toast.error("Sign-in Failed", { description: `Please check your credentials. Status: ${result.status}`});
+      }
+    } catch (err: any) {
+      const clerkError = err.errors?.[0];
+      const message = clerkError?.longMessage || clerkError?.message || "An unknown error occurred during login.";
+      setError(message);
+      console.error("Login submission error:", err);
+      toast.error("Login Error", { description: message, closeButton: true });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Forgot password handler
+  const handleForgotPassword = () => {
+    // Redirect to Clerk's password reset flow.
+    // The redirectUrl is where the user will be sent after completing the flow.
+    redirectToSignIn({ redirectUrl: "/login" }); // Or your desired post-reset page
+  };
+
+  // Conditional rendering for the main loading state
   if (isCheckingAuth) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex justify-center items-center h-screen bg-gray-100 dark:bg-bg1">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
 
-  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
-    setIsSubmitting(true); // Start loading
-    setError(""); // Clear previous errors
-
-    try {
-      // Attempt to sign in
-      if (signIn) {
-        const result = await signIn.create({
-          identifier: data.email,
-          password: data.password,
-        });
-
-        if (result.status === "complete") {
-          // Set the user as active and redirect to the dashboard
-          await setActive({ session: result.createdSessionId });
-          router.push("/dashboard");
-        }
-      } else {
-        setError("Sign-in service is unavailable.");
-      }
-    } catch (err: any) {
-      console.error("Login error:", err);
-      setError(err.errors[0].message); // Display error message
-      toast("Uh oh! Wrong password or email .", {
-        description: "Check and try again!",
-        closeButton: true,
-      });
-    } finally {
-      setIsSubmitting(false); // Stop loading
-    }
-  };
-
-  // Handle forgot password
-  const handleForgotPassword = () => {
-    // Redirect to the password reset page
-    redirectToSignIn({
-      redirectUrl: "/login", // Replace with your password reset page URL
-    });
-  };
-
+  // Main JSX for the login page
   return (
     <div className="w-full flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-bg1 p-8 md:mx-auto md:flex-row md:items-center md:justify-center md:space-x-12">
       <Form {...form}>
@@ -116,7 +182,6 @@ export default function LoginPage() {
           onSubmit={form.handleSubmit(onSubmit)}
           className="w-full max-w-md p-6 bg-white dark:bg-bg2 rounded-lg shadow-md"
         >
-          {/* School logo */}
           <div className="flex items-center justify-center mb-8">
             <Image
               src={SchoolLogo}
@@ -124,10 +189,9 @@ export default function LoginPage() {
               width={92}
               height={38}
               className="w-auto h-auto"
+              priority // Add priority if this is a key visual element
             />
           </div>
-
-          {/* Header */}
           <div>
             <h2 className="text-2xl text-center font-bold text-gray-900 dark:text-white mb-2">
               Welcome Back!
@@ -137,8 +201,6 @@ export default function LoginPage() {
               effortlessly.
             </p>
           </div>
-
-          {/* Email Field */}
           <FormField
             control={form.control}
             name="email"
@@ -149,6 +211,7 @@ export default function LoginPage() {
                   <Input
                     className="enabled:hover:border-blue-600 disabled:opacity-75"
                     placeholder="Email"
+                    type="email"
                     {...field}
                   />
                 </FormControl>
@@ -156,8 +219,6 @@ export default function LoginPage() {
               </FormItem>
             )}
           />
-
-          {/* Password Field */}
           <FormField
             control={form.control}
             name="password"
@@ -175,7 +236,8 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2 top-2 text-gray-500"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -185,8 +247,6 @@ export default function LoginPage() {
               </FormItem>
             )}
           />
-
-          {/* Forgot Password Link */}
           <div className="text-right mb-6">
             <button
               type="button"
@@ -196,31 +256,26 @@ export default function LoginPage() {
               Forgot Password?
             </button>
           </div>
-
-          {/* Error Message */}
           {error && (
-            <p className="text-sm text-red-500 text-center mb-4">{error}</p>
+            <p className="text-sm text-red-600 dark:text-red-500 text-center mb-4 bg-red-100 dark:bg-red-900/30 p-2 rounded-md">
+              {error}
+            </p>
           )}
-
-          {/* Login Button */}
           <Button
-            className="w-full bg-blue-500 hover:bg-blue-400 text-white font-bold mt-6"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold mt-6"
             type="submit"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              "Log In"
-            )}
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : null}
+            {isSubmitting ? "Logging In..." : "Log In"}
           </Button>
-
-          {/* Sign Up Link */}
           <div className="mt-6 text-center">
             <p className="text-gray-600 dark:text-gray-300">
               Don’t have an account?{" "}
               <Link
-                href="/signup"
+                href="/signup" // Ensure this path is correct
                 className="text-blue-600 font-bold dark:text-blue-500 hover:underline"
               >
                 Sign Up
@@ -229,15 +284,14 @@ export default function LoginPage() {
           </div>
         </form>
       </Form>
-
-      {/* Background Image */}
       <div className="w-full max-w-md mt-8 md:mt-0 md:max-w-md lg:max-w-2xl">
         <Image
           src={Bg}
-          alt="Background image"
+          alt="Abstract background image"
           height={960}
           width={719}
-          className="rounded-xl w-auto h-auto"
+          className="rounded-xl w-auto h-auto object-cover"
+          priority // Consider if this image is critical for LCP
         />
       </div>
     </div>

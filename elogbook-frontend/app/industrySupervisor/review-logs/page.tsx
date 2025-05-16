@@ -213,16 +213,16 @@ export default function ReviewLogsPage() {
 
   if (loading) {
     return (
-      <DashboardLayout userRole="industrySupervisor">
+     // <DashboardLayout userRole="industrySupervisor">
         <div className="flex items-center justify-center h-[calc(100vh-10rem)]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </DashboardLayout>
+      //</DashboardLayout>
     )
   }
 
   return (
-    <DashboardLayout userRole="industrySupervisor">
+    //<DashboardLayout userRole="industrySupervisor">
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -596,6 +596,6 @@ export default function ReviewLogsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+   // </DashboardLayout>
   )
 }
