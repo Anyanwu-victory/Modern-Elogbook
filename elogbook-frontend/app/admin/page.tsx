@@ -24,7 +24,6 @@ export default function AdminDashboard() {
   }
 
   const isLoaded = true
-  const isSignedIn = true
   const user = mockAdminUser
 
   useEffect(() => {

@@ -5,7 +5,6 @@ import { useSignUp } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react"; // For loading spinner
 import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import Image from "next/image";
 import {
@@ -45,14 +44,18 @@ export default function VerifyEmailPage() {
         await setActive({ session: completeSignUp.createdSessionId });
         router.push("/setup-account"); // Redirect to set-up
       }
-    } catch (err: any) {
-      console.error("Error verifying email:", err);
-      setError(err.errors[0].message); // Display error message
-      toast("Uh oh! Something went wrong.", {
-        description: "There was a problem with your request. Try again",
-        closeButton: true,
-      });
-    } finally {
+    } catch (err) {
+      let message = "An unknown error occurred during email verification.";
+    
+      if (typeof err === "object" && err !== null && "errors" in err) {
+        const clerkError = (err as { errors?: { longMessage?: string; message?: string }[] }).errors?.[0];
+        message = clerkError?.longMessage || clerkError?.message || message;
+      }
+    
+      setError(message);
+      console.error("Login submission error:", err);
+      toast.error("Login Error", { description: message, closeButton: true });
+    }finally {
       setIsLoading(false); // Stop loading
     }
   };

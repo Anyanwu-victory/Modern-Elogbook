@@ -147,9 +147,14 @@ export default function LoginPage() {
         setError(`Sign-in failed. Status: ${result.status}`);
         toast.error("Sign-in Failed", { description: `Please check your credentials. Status: ${result.status}`});
       }
-    } catch (err: any) {
-      const clerkError = err.errors?.[0];
-      const message = clerkError?.longMessage || clerkError?.message || "An unknown error occurred during login.";
+    } catch (err) {
+      let message = "An unknown error occurred during login.";
+    
+      if (typeof err === "object" && err !== null && "errors" in err) {
+        const clerkError = (err as { errors?: { longMessage?: string; message?: string }[] }).errors?.[0];
+        message = clerkError?.longMessage || clerkError?.message || message;
+      }
+    
       setError(message);
       console.error("Login submission error:", err);
       toast.error("Login Error", { description: message, closeButton: true });

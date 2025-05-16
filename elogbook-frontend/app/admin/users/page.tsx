@@ -5,7 +5,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, Eye, Trash2, Check, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { DashboardLayout } from '@/components/dashboard-layout';
 import {
   Table,
   TableHead,

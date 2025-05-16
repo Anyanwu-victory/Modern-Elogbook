@@ -3,30 +3,24 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Clock,
-  Download,
   Eye,
   FileText,
   Filter,
   Search,
-  XCircle,
+ 
 } from "lucide-react";
-
-import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { getClient } from "@/sanity/lib/sanity.client";
 import {useUser} from "@clerk/nextjs";
 import {getStudentLogsQuery} from "@/sanity/lib/sanity.queries"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { mockLogs, mockUser } from "@/pages/api/mock-data";
+import { mockLogs} from "@/pages/api/mock-data";
 
 export default function MyLogsPage() {
   const {user , isSignedIn , isLoaded} = useUser();

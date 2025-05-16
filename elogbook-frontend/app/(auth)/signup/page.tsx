@@ -14,13 +14,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
@@ -92,7 +85,7 @@ export default function SignUpPage() {
        
     
       
-    } catch (err: any) {
+    } catch (err) {
         console.error("Error during signup:", err);
         toast("Uh oh! Something went wrong.", {
           description: "There was a problem with your request. Try again",
@@ -168,35 +161,7 @@ export default function SignUpPage() {
               </FormItem>
             )}
           />
-{/* 
-          <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem className="mb-4 w-full">
-                    <FormLabel>Role</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full enabled:hover:border-blue-600 disabled:opacity-75">
-                          <SelectValue placeholder="Select your role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-bg1">
-                        <SelectItem value="student">Student</SelectItem>
-                        <SelectItem value="lecturer">Lecturer</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </>
-        
-*/}
+
           <FormField 
             control={form.control}
             name="password"
