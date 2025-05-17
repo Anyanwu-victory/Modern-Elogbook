@@ -44,6 +44,15 @@ export const UserRoleQuery = `
   *[_type == "user" && userId == $clerkUserId][0].role
 `;
 
+
+export const userbyIdQuery = groq`
+  *[_type == "user" && userId == $userId][0]{
+    userId,
+    role,
+  }
+`;
+
+
 export const AllUsersQuery = groq`
 *[_type == "user"] | order(_createdAt desc) {
   _id,
@@ -174,6 +183,24 @@ export interface Department {
   code?: string;
   faculty?: string;
 }
+export interface Student {
+  _id: string;
+  firstName?: string;
+  lastName?: string;
+  matricNumber?: string;
+  level?: string;
+  email?: string;
+  institutionSupervisor?: {
+    firstName: string;
+    lastName: string;
+  };
+}
+
+export interface User {
+  _id: string;
+  role: string;
+}
+
 
 export interface Faculty {
   _id: string;

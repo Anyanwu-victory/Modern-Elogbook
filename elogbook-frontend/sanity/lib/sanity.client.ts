@@ -20,6 +20,8 @@ import {
   CompanyQuery,
   type Department,
   type Faculty,
+  type User,
+  userbyIdQuery,
 } from "@/sanity/lib/sanity.queries";
 import { createClient, type SanityClient } from "next-sanity";
 
@@ -58,7 +60,12 @@ export async function getAllFaculties(
 }
 
 
-
+export async function getUserById(
+  client: SanityClient,
+  userId: string
+): Promise<User> {
+  return (await client.fetch(userbyIdQuery, { userId })) || ({} as any);
+}
 //   export async function getSettings(client: SanityClient):
 //  Promise<Settings> {
 //     return (await client.fetch(settingsQuery)) || {}
