@@ -268,7 +268,7 @@ export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAcc
   
       const { role, ...rest } = data;
   
-      const response = await fetch("/api/setup-profile", {
+      const response = await fetch("/pages/api/setup-profile", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

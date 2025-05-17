@@ -110,7 +110,7 @@ export default function SubmitLogPage() {
     
       try {
     
-        const response = await fetch('/api/submit-logs', {
+        const response = await fetch('/pages/api/submit-logs', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
