@@ -22,7 +22,7 @@ export default function UnauthorizedPage() {
           <AlertTriangle className="h-8 w-8 text-yellow-500" />
           Access Denied
         </h1>
-
+        {/* Chris@123Right456 */}
         <p className="text-gray-600 mb-6">
           You don't have permission to view this page. Please contact support if
           you believe this is an error.
