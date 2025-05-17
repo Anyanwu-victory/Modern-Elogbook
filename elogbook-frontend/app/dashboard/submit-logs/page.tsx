@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Loader2, Upload } from 'lucide-react'
-import DashboardLayout from "@/components/dashboard/DashboardLayout"
+import DashboardLayout from "@/components/main-dashboard/DashboardLayout"
 import { Button } from "@/components/ui/button"
 import {
   Form,
