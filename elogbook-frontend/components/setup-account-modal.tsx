@@ -269,11 +269,29 @@ export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAcc
   
       const { role, ...rest } = data;
   
-      const result = await setupUserProfile({
-        ...data,
-        signature: signatureBase64 || "", // Ensure signature is a string
+      // const result = await setupUserProfile({
+      //   ...data,
+      //   signature: signatureBase64 || "", // Ensure signature is a string
+      // });
+      //  console.log("Profile Updated", result)
+      const response = await fetch("/api/setup-profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          role,
+          signature: signatureBase64 || "",
+          ...rest,
+        }),
       });
-       console.log("Profile Updated", result)
+    
+      const result = await response.json();
+    
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to set up profile.");
+      }
+    
       toast({
         title: "Account setup complete",
         description: "Your account has been successfully set up.",

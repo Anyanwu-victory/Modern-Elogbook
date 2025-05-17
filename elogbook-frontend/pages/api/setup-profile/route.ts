@@ -1,45 +1,43 @@
-
-
 import { auth } from "@clerk/nextjs/server";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 import { getClient } from "@/sanity/lib/sanity.client";
 import { writeToken } from "@/sanity/lib/sanity.api";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "PATCH") {
-    res.setHeader("Allow", "PATCH");
-    return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
-  }
 
+
+export async function PATCH(req: Request) {
+
+  const client = getClient({ token: writeToken });
+ 
   try {
     const { userId } = await auth();
 
-    if (!userId) {
-      return res.status(401).json({ message: "No user ID" });
-    }
-
-    const client = getClient({ token: writeToken });
-
-    const existingUser = await client.getDocument(`user-${userId}`);
-
+    const existingUser = await client.getDocument(`user-${userId}`)
+  
     if (!existingUser) {
-      console.warn("User document does not exist before patching");
+      console.warn("user document does not eist before patching")
     }
+    
+    if (!userId) {
+      return NextResponse.json({ message: "No user ID" },
+         { status: 401 });
+      }
 
-    const body = req.body;
+    const body = await req.json();
+   
+    const { role, ...rest } = body;
 
-    const { role, signature , ...rest} = body;
+    if (!role) return NextResponse.json({ message: "User role is required" }, { status: 400 });
 
-    if (!role) {
-      return res.status(400).json({ message: "User role is required" });
-    }
-
+    // Base patch object
     await client.createIfNotExists({
       _id: `user-${userId}`,
       _type: "user",
     });
-
-    const patchData: Record<string, any> = { role };
+    
+    const patchData: Record<string, any> = {
+      role,
+    };
 
     if (role === "student") {
       patchData.studentDetails = {
@@ -69,13 +67,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
     }
 
-    const result = await client.patch(`user-${userId}`).set(patchData).commit();
+    const result = await client
+      .patch(`user-${userId}`)
+      .set(patchData)
+      //.commit({ autoGenerateArrayKeys: true });
+      .commit()
+    return NextResponse.json(result, { status: 200 });
 
-    console.log("Received data:", { role, signature, ...rest });
-
-    return res.status(200).json(result);
   } catch (error) {
     console.error("[SETUP_PROFILE_PATCH]", error);
-    return res.status(500).json({ message: "Something went wrong", error: String(error) });
+    return NextResponse.json({ message: "Something went wrong", error }, { status: 500 });
   }
 }
