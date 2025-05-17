@@ -1,3 +1,5 @@
+"use server"
+
 import { getClient } from "@/sanity/lib/sanity.client";
 import { auth } from "@clerk/nextjs/server";
 import { writeToken } from "@/sanity/lib/sanity.api";

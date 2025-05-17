@@ -1,3 +1,5 @@
+"use server"
+
 import { auth } from "@clerk/nextjs/server";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getClient } from "@/sanity/lib/sanity.client";
