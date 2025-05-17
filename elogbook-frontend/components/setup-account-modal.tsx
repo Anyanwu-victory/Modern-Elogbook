@@ -269,8 +269,11 @@ export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAcc
   
       const { role, ...rest } = data;
   
-      const result = await setupUserProfile(formData);
-     console.log("Profile Updated", result)
+      const result = await setupUserProfile({
+        ...data,
+        signature: signatureBase64 || "", // Ensure signature is a string
+      });
+       console.log("Profile Updated", result)
       toast({
         title: "Account setup complete",
         description: "Your account has been successfully set up.",
