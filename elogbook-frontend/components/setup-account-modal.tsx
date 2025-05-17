@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation"
 import { getClient } from "@/sanity/lib/sanity.client"
 import { writeToken } from "@/sanity/lib/sanity.api"
 import { Button } from "@/components/ui/button"
+import { setupUserProfile } from "@/lib/apiSetupProfile"
 import {
   Dialog,
   DialogContent,
@@ -268,24 +269,8 @@ export function SetupAccountModal({ isOpen, onOpenChange, onComplete }: SetupAcc
   
       const { role, ...rest } = data;
   
-      const response = await fetch("/api/setup-profile", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          role,
-          signature: signatureBase64,
-          ...rest, // Spread the rest of the fields based on the role
-        }),
-      });
-  
-      const result = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to set up profile.");
-      }
-  
+      const result = await setupUserProfile(formData);
+     console.log("Profile Updated", result)
       toast({
         title: "Account setup complete",
         description: "Your account has been successfully set up.",
