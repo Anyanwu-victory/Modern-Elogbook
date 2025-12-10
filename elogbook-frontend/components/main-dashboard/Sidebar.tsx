@@ -27,7 +27,7 @@ export function Sidebar({ tabs, activeTab, setActiveTab, user , onLogout }: Side
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-center h-16 px-4 border-b">
           <div className="flex items-center gap-2 font-semibold">
-            <BookOpen className="h-6 w-6" /> E-Logbook
+            <BookOpen className="h-6 w-6" /> SWIESTrack
           </div>
         </div>
         <nav className="flex-1 px-2 py-4 space-y-1">
@@ -50,7 +50,7 @@ export function Sidebar({ tabs, activeTab, setActiveTab, user , onLogout }: Side
         <div className="p-4 border-t">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-              {user?.firstName?.charAt(0)}
+              {user?.firstName?.charAt(1)}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user?.firstName}</p>
