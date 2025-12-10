@@ -363,7 +363,6 @@ export default function StudentDashboard() {
             <CardDescription>Recent updates and messages</CardDescription>
           </CardHeader>
           <CardContent>
-          
             <div className="space-y-4">
               {notifications.map((notification) => (
                 <Alert
